@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Core;
+
+/**
+ * CSRF Protection
+ */
+class Csrf
+{
+    private const TOKEN_NAME = '_csrf_token';
+
+    public static function generateToken(): string
+    {
+        if (!Session::has(self::TOKEN_NAME)) {
+            $token = bin2hex(random_bytes(32));
+            Session::set(self::TOKEN_NAME, $token);
+        }
+
+        return Session::get(self::TOKEN_NAME);
+    }
+
+    public static function validateToken(?string $token): bool
+    {
+        if (!$token) {
+            return false;
+        }
+
+        $sessionToken = Session::get(self::TOKEN_NAME);
+
+        if (!$sessionToken) {
+            return false;
+        }
+
+        return hash_equals($sessionToken, $token);
+    }
+
+    public static function field(): string
+    {
+        $token = self::generateToken();
+        return '<input type="hidden" name="' . self::TOKEN_NAME . '" value="' . htmlspecialchars($token) . '">';
+    }
+
+    public static function validate(Request $request): bool
+    {
+        $token = $request->post(self::TOKEN_NAME);
+        return self::validateToken($token);
+    }
+}

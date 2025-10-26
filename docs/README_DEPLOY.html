@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMMC Compliance Suite - Deployment Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        code {
+            background: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #e53e3e;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .alert-info {
+            background: #ebf8ff;
+            border-color: #4299e1;
+            color: #2c5282;
+        }
+        .alert-warning {
+            background: #fffaf0;
+            border-color: #ed8936;
+            color: #7c2d12;
+        }
+        .alert-success {
+            background: #f0fff4;
+            border-color: #48bb78;
+            color: #22543d;
+        }
+        ol, ul {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .toc {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .toc h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CMMC Compliance Suite</h1>
+        <p><strong>Deployment Guide</strong> - Zero-CLI, Web-Based Installation</p>
+
+        <div class="alert alert-success">
+            <strong>✓ No Command Line Required!</strong><br>
+            This application installs entirely through your web browser. No npm, no composer, no build steps.
+        </div>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#requirements">2. Server Requirements</a></li>
+                <li><a href="#quick-start">3. Quick Start</a></li>
+                <li><a href="#detailed-setup">4. Detailed Setup Instructions</a></li>
+                <li><a href="#web-server-config">5. Web Server Configuration</a></li>
+                <li><a href="#database-setup">6. Database Setup</a></li>
+                <li><a href="#saml-setup">7. Microsoft Entra SAML Setup</a></li>
+                <li><a href="#integrations">8. Optional Integrations</a></li>
+                <li><a href="#troubleshooting">9. Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <h2 id="overview">1. Overview</h2>
+        <p>
+            The CMMC Compliance Suite is a self-contained PHP application for tracking compliance with:
+        </p>
+        <ul>
+            <li><strong>CMMC 2.0</strong> - Maturity Levels 1-3</li>
+            <li><strong>NIST SP 800-171</strong> - All 110 security practices</li>
+            <li><strong>DISA STIGs</strong> - Security Technical Implementation Guides</li>
+            <li><strong>SPRS Scoring</strong> - DoD assessment methodology</li>
+            <li><strong>POA&M Tracking</strong> - Plan of Action & Milestones</li>
+        </ul>
+
+        <h2 id="requirements">2. Server Requirements</h2>
+
+        <h3>Minimum Server Specifications</h3>
+        <ul>
+            <li><strong>PHP:</strong> 8.1 or higher</li>
+            <li><strong>Web Server:</strong> Apache 2.4+ with mod_rewrite OR nginx 1.18+</li>
+            <li><strong>Database:</strong> MySQL 5.7+ / MariaDB 10.3+ OR PostgreSQL 12+</li>
+            <li><strong>RAM:</strong> 512 MB minimum (1 GB recommended)</li>
+            <li><strong>Disk Space:</strong> 100 MB minimum</li>
+        </ul>
+
+        <h3>Required PHP Extensions</h3>
+        <ul>
+            <li><code>pdo</code> - PDO extension</li>
+            <li><code>pdo_mysql</code> - MySQL driver (if using MySQL)</li>
+            <li><code>pdo_pgsql</code> - PostgreSQL driver (if using PostgreSQL)</li>
+            <li><code>openssl</code> - For encryption and SAML</li>
+            <li><code>mbstring</code> - Multi-byte string handling</li>
+            <li><code>curl</code> - For API integrations</li>
+            <li><code>gd</code> - Image processing</li>
+            <li><code>zip</code> - Archive handling</li>
+        </ul>
+
+        <div class="alert alert-info">
+            <strong>Note:</strong> The installer wizard will check all requirements automatically.
+        </div>
+
+        <h2 id="quick-start">3. Quick Start (5 Minutes)</h2>
+
+        <ol>
+            <li><strong>Download</strong> the application package</li>
+            <li><strong>Unzip</strong> to your web server's document root</li>
+            <li><strong>Set permissions</strong> on two directories:
+                <pre>chmod 770 config/
+chmod 770 storage/</pre>
+            </li>
+            <li><strong>Create a database</strong> (MySQL or PostgreSQL)</li>
+            <li><strong>Visit</strong> <code>http://your-domain.com/install</code> in your browser</li>
+            <li><strong>Follow the wizard</strong> - it will guide you through setup</li>
+        </ol>
+
+        <div class="alert alert-success">
+            <strong>That's it!</strong> The browser-based installer handles everything else.
+        </div>
+
+        <h2 id="detailed-setup">4. Detailed Setup Instructions</h2>
+
+        <h3>Step 1: Prepare Your Server</h3>
+
+        <p><strong>For Ubuntu/Debian:</strong></p>
+        <pre>sudo apt update
+sudo apt install apache2 php8.1 php8.1-mysql php8.1-pgsql php8.1-xml \
+    php8.1-curl php8.1-mbstring php8.1-gd php8.1-zip mysql-server
+
+# Enable Apache modules
+sudo a2enmod rewrite
+sudo systemctl restart apache2</pre>
+
+        <p><strong>For CentOS/RHEL:</strong></p>
+        <pre>sudo yum install httpd php php-mysqlnd php-pdo php-xml php-mbstring \
+    php-gd php-zip mariadb-server
+
+sudo systemctl enable httpd mariadb
+sudo systemctl start httpd mariadb</pre>
+
+        <h3>Step 2: Download and Extract</h3>
+
+        <pre># Download the application
+cd /var/www/html
+sudo wget https://your-download-url/cmmc-suite.zip
+sudo unzip cmmc-suite.zip
+sudo mv cmmc-suite cmmc
+
+# Or clone from Git
+git clone https://github.com/your-org/cmmc-suite.git cmmc</pre>
+
+        <h3>Step 3: Set Permissions</h3>
+
+        <pre>cd /var/www/html/cmmc
+
+# Set ownership (replace www-data with your web server user)
+sudo chown -R www-data:www-data .
+
+# Set directory permissions
+sudo chmod 755 .
+sudo chmod -R 755 public/
+sudo chmod -R 755 app/
+sudo chmod -R 755 database/
+sudo chmod -R 755 vendor/
+
+# Set writable directories
+sudo chmod 770 config/
+sudo chmod 770 storage/
+sudo chmod -R 770 storage/*</pre>
+
+        <div class="alert alert-warning">
+            <strong>Security Note:</strong> Only <code>config/</code> and <code>storage/</code> need write permissions. Never make the entire application writable.
+        </div>
+
+        <h3>Step 4: Database Creation</h3>
+
+        <p><strong>MySQL/MariaDB:</strong></p>
+        <pre>mysql -u root -p
+
+CREATE DATABASE cmmc_compliance CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'cmmc_user'@'localhost' IDENTIFIED BY 'secure_password_here';
+GRANT ALL PRIVILEGES ON cmmc_compliance.* TO 'cmmc_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;</pre>
+
+        <p><strong>PostgreSQL:</strong></p>
+        <pre>sudo -u postgres psql
+
+CREATE DATABASE cmmc_compliance;
+CREATE USER cmmc_user WITH ENCRYPTED PASSWORD 'secure_password_here';
+GRANT ALL PRIVILEGES ON DATABASE cmmc_compliance TO cmmc_user;
+\q</pre>
+
+        <h3>Step 5: Run the Installer</h3>
+
+        <p>Open your web browser and navigate to:</p>
+        <pre>http://your-domain.com/cmmc/install</pre>
+
+        <p>The installer will guide you through 6 steps:</p>
+        <ol>
+            <li><strong>Requirements Check</strong> - Verifies PHP extensions</li>
+            <li><strong>Database Configuration</strong> - Connection settings</li>
+            <li><strong>Database Setup</strong> - Creates tables and loads controls</li>
+            <li><strong>SAML Configuration</strong> (optional) - Microsoft Entra SSO</li>
+            <li><strong>Admin Account</strong> - Create your first user</li>
+            <li><strong>Complete</strong> - Ready to use!</li>
+        </ol>
+
+        <h2 id="web-server-config">5. Web Server Configuration</h2>
+
+        <h3>Apache Configuration</h3>
+
+        <p>The included <code>.htaccess</code> file handles URL rewriting automatically. Just ensure <code>mod_rewrite</code> is enabled:</p>
+
+        <pre>sudo a2enmod rewrite
+sudo systemctl restart apache2</pre>
+
+        <p><strong>Virtual Host Configuration:</strong></p>
+        <pre>&lt;VirtualHost *:80&gt;
+    ServerName cmmc.your-domain.com
+    DocumentRoot /var/www/html/cmmc/public
+
+    &lt;Directory /var/www/html/cmmc/public&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+
+    ErrorLog ${APACHE_LOG_DIR}/cmmc_error.log
+    CustomLog ${APACHE_LOG_DIR}/cmmc_access.log combined
+&lt;/VirtualHost&gt;</pre>
+
+        <h3>nginx Configuration</h3>
+
+        <p>Create <code>/etc/nginx/sites-available/cmmc</code>:</p>
+
+        <pre>server {
+    listen 80;
+    server_name cmmc.your-domain.com;
+    root /var/www/html/cmmc/public;
+    index index.php;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}
+</pre>
+
+        <p>Enable the site:</p>
+        <pre>sudo ln -s /etc/nginx/sites-available/cmmc /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx</pre>
+
+        <h3>SSL/TLS Configuration (Recommended)</h3>
+
+        <p>Use Let's Encrypt for free SSL certificates:</p>
+
+        <pre>sudo apt install certbot python3-certbot-apache
+sudo certbot --apache -d cmmc.your-domain.com</pre>
+
+        <p>Or for nginx:</p>
+        <pre>sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d cmmc.your-domain.com</pre>
+
+        <h2 id="database-setup">6. Database Setup</h2>
+
+        <p>The installer automatically:</p>
+        <ul>
+            <li>Creates all database tables</li>
+            <li>Loads CMMC 2.0 ML1-ML3 controls</li>
+            <li>Loads NIST SP 800-171 (110 practices)</li>
+            <li>Loads DISA STIG references</li>
+            <li>Creates control mappings</li>
+        </ul>
+
+        <div class="alert alert-info">
+            <strong>Manual Migration:</strong> If you need to run migrations manually (not recommended), you cannot do so as this is a web-only application. Use the installer.
+        </div>
+
+        <h2 id="saml-setup">7. Microsoft Entra (Azure AD) SAML Setup</h2>
+
+        <h3>In Azure Portal:</h3>
+
+        <ol>
+            <li>Go to <strong>Azure Active Directory</strong> → <strong>Enterprise Applications</strong></li>
+            <li>Click <strong>New Application</strong> → <strong>Create your own application</strong></li>
+            <li>Name it "CMMC Compliance Suite" and select <strong>Integrate any other application</strong></li>
+            <li>Go to <strong>Single sign-on</strong> → Select <strong>SAML</strong></li>
+            <li>Configure with these URLs (from installer):</li>
+        </ol>
+
+        <pre><strong>Entity ID:</strong> https://cmmc.your-domain.com
+<strong>Reply URL (ACS):</strong> https://cmmc.your-domain.com/saml/acs
+<strong>Sign on URL:</strong> https://cmmc.your-domain.com/saml/login</pre>
+
+        <ol start="6">
+            <li>Under <strong>Attributes & Claims</strong>, ensure these are mapped:
+                <ul>
+                    <li><code>user.mail</code> → email</li>
+                    <li><code>user.displayname</code> → displayName</li>
+                    <li><code>user.groups</code> → groups (optional)</li>
+                </ul>
+            </li>
+            <li>Download the <strong>Federation Metadata XML</strong> or copy the <strong>App Federation Metadata URL</strong></li>
+        </ol>
+
+        <h3>In the CMMC Installer:</h3>
+
+        <ol>
+            <li>Check <strong>"Enable SAML SSO"</strong></li>
+            <li>Paste the <strong>IdP Metadata URL</strong> OR upload the XML file</li>
+            <li>Optionally configure <strong>group-to-role mappings</strong></li>
+        </ol>
+
+        <h3>Group-to-Role Mapping</h3>
+
+        <p>Map Azure AD groups to application roles:</p>
+        <ul>
+            <li><code>CMMC-Admins</code> → <strong>admin</strong></li>
+            <li><code>CMMC-Auditors</code> → <strong>auditor</strong></li>
+            <li><code>CMMC-Contributors</code> → <strong>contributor</strong></li>
+            <li><code>CMMC-Viewers</code> → <strong>viewer</strong></li>
+        </ul>
+
+        <h2 id="integrations">8. Optional Integrations</h2>
+
+        <h3>Autotask Integration</h3>
+
+        <p>In the application, go to <strong>Integrations</strong> → <strong>Autotask</strong>:</p>
+        <ol>
+            <li>Enter your Autotask <strong>API URL</strong></li>
+            <li>Enter your <strong>API Username</strong> and <strong>API Secret</strong></li>
+            <li>Click <strong>Test Connection</strong></li>
+            <li>Click <strong>Sync Customers</strong> to import companies</li>
+        </ol>
+
+        <h3>ITGlue Integration</h3>
+
+        <p>In the application, go to <strong>Integrations</strong> → <strong>ITGlue</strong>:</p>
+        <ol>
+            <li>Enter your ITGlue <strong>API URL</strong></li>
+            <li>Enter your <strong>API Key</strong></li>
+            <li>Click <strong>Test Connection</strong></li>
+            <li>Click <strong>Sync Organizations</strong></li>
+        </ol>
+
+        <h2 id="troubleshooting">9. Troubleshooting</h2>
+
+        <h3>Problem: "500 Internal Server Error"</h3>
+
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Check Apache/nginx error logs:
+                <pre>sudo tail -f /var/log/apache2/error.log
+sudo tail -f /var/log/nginx/error.log</pre>
+            </li>
+            <li>Check PHP error logs:
+                <pre>sudo tail -f /var/log/php8.1-fpm.log
+cat storage/logs/php_errors.log</pre>
+            </li>
+            <li>Verify file permissions on <code>config/</code> and <code>storage/</code></li>
+        </ol>
+
+        <h3>Problem: "Database connection failed"</h3>
+
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Verify database credentials</li>
+            <li>Check database is running:
+                <pre>sudo systemctl status mysql
+sudo systemctl status postgresql</pre>
+            </li>
+            <li>Test connection manually:
+                <pre>mysql -u cmmc_user -p cmmc_compliance
+psql -U cmmc_user -d cmmc_compliance</pre>
+            </li>
+        </ol>
+
+        <h3>Problem: ".htaccess not working"</h3>
+
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Enable mod_rewrite: <code>sudo a2enmod rewrite</code></li>
+            <li>Set <code>AllowOverride All</code> in Apache virtual host</li>
+            <li>Restart Apache: <code>sudo systemctl restart apache2</code></li>
+        </ol>
+
+        <h3>Problem: "CSRF token validation failed"</h3>
+
+        <p><strong>Solution:</strong></p>
+        <ol>
+            <li>Ensure cookies are enabled in your browser</li>
+            <li>Check session storage is writable: <code>sudo chmod 770 storage/sessions</code></li>
+            <li>Clear browser cache and cookies</li>
+        </ol>
+
+        <h3>Getting Help</h3>
+
+        <ul>
+            <li><strong>Documentation:</strong> See <code>docs/</code> folder</li>
+            <li><strong>Sample Data:</strong> Check <code>sample-data/</code> for demo imports</li>
+            <li><strong>Logs:</strong> Application logs are in <code>storage/logs/</code></li>
+            <li><strong>Audit Trail:</strong> All actions logged in database <code>audit_log</code> table</li>
+        </ul>
+
+        <div class="alert alert-success">
+            <strong>🎉 Congratulations!</strong><br>
+            Your CMMC Compliance Suite is now deployed and ready to use.
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+        <p style="text-align: center; color: #718096; font-size: 13px;">
+            CMMC Compliance Suite &copy; 2025 | Generated with Claude Code
+        </p>
+    </div>
+</body>
+</html>

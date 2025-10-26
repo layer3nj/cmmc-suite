@@ -57,8 +57,8 @@ if (!$isInstalled && !str_starts_with($path, 'install')) {
 
 // Bootstrap the application
 try {
-    $app = new App\Core\Application($isInstalled);
-    $app->run();
+    $GLOBALS['app'] = new App\Core\Application($isInstalled);
+    $GLOBALS['app']->run();
 } catch (Throwable $e) {
     // Log the error
     error_log('Application Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());

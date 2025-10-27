@@ -37,7 +37,12 @@ class View
             return Session::getFlash('old_' . $key, $default);
         };
 
-        $error = function($key) {
+        $error = function($key = null) {
+            if ($key === null) {
+                // General error message
+                return Session::getFlash('error');
+            }
+            // Field-specific error
             return Session::getFlash('error_' . $key);
         };
 

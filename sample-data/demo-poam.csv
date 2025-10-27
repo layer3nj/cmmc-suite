@@ -1,0 +1,9 @@
+Control Code,Title,Weakness,Corrective Action,Responsible Party,Start Date,Planned Completion,Status,Residual Risk
+3.5.3,Use multifactor authentication,MFA not implemented for any accounts,Deploy Microsoft Authenticator for all users; Configure Azure AD Conditional Access,IT Security Team,2025-01-15,2025-03-31,open,High
+3.13.8,Implement cryptographic mechanisms,Data at rest not encrypted,Enable BitLocker on all workstations; Implement TDE on SQL databases,Infrastructure Team,2025-01-20,2025-04-15,open,High
+3.13.11,Employ FIPS-validated cryptography,Non-FIPS algorithms in use,Configure FIPS mode on Windows servers; Update applications to use FIPS-validated libraries,Development Team,2025-02-01,2025-05-30,open,Medium
+3.14.6,Monitor information systems,No IDS/IPS deployed,Deploy Microsoft Defender for Endpoint; Configure SIEM logging,Security Operations,2025-01-10,2025-03-15,in_progress,High
+3.6.3,Test incident response capability,No tabletop exercises conducted,Schedule quarterly incident response drills,CISO,2025-02-15,2025-06-30,open,Medium
+3.1.8,Limit unsuccessful logon attempts,Account lockout not configured,Enable account lockout policy in AD (5 attempts / 15 minutes),IT Operations,2025-01-05,2025-02-28,in_progress,Low
+3.3.8,Protect audit information,Audit logs not protected from modification,Implement WORM storage for audit logs; Enable log integrity checking,Security Team,2025-02-01,2025-04-30,open,Medium
+3.4.2,Establish security configuration settings,No hardening baselines applied,Apply CIS benchmarks to all systems; Document deviations,Compliance Team,2025-01-15,2025-05-31,open,Medium

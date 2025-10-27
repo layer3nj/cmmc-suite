@@ -1,0 +1,41 @@
+{
+  "demo_customer": {
+    "name": "Acme Corporation",
+    "contact_email": "security@acme.corp",
+    "contact_phone": "555-0100",
+    "address": "123 Security Blvd, Compliance City, ST 12345",
+    "active": 1
+  },
+  "demo_assessment": {
+    "notes": "Initial CMMC ML2 assessment conducted for baseline",
+    "framework": "NIST800171",
+    "assessed_at": "2025-01-15",
+    "status": "published"
+  },
+  "sample_findings": [
+    {
+      "control_code": "3.1.1",
+      "status": "met",
+      "objective_evidence": "Active Directory configured with proper user access controls",
+      "severity": "low"
+    },
+    {
+      "control_code": "3.1.5",
+      "status": "partially_met",
+      "objective_evidence": "Least privilege implemented for most users, some administrative accounts need review",
+      "severity": "moderate"
+    },
+    {
+      "control_code": "3.5.3",
+      "status": "not_met",
+      "objective_evidence": "Multi-factor authentication not yet implemented",
+      "severity": "high"
+    }
+  ],
+  "installation_notes": [
+    "This is sample data for demonstration purposes",
+    "Import via Admin > Import after installation",
+    "Will create one customer with one assessment",
+    "Useful for testing and training"
+  ]
+}

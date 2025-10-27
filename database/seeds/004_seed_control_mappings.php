@@ -64,9 +64,19 @@ return function($db) {
         ['source_framework' => 'NIST800171', 'source_code' => '3.13.8', 'target_framework' => 'STIG', 'target_code' => 'SRG-APP-000172-WSR-000104', 'relation_type' => 'related_to'],
     ];
 
+    $inserted = 0;
     foreach ($mappings as $mapping) {
-        $db->insert('control_mappings', $mapping);
+        // Check if mapping already exists
+        $existing = $db->fetchOne(
+            'SELECT id FROM control_mappings WHERE source_framework = ? AND source_code = ? AND target_framework = ? AND target_code = ?',
+            [$mapping['source_framework'], $mapping['source_code'], $mapping['target_framework'], $mapping['target_code']]
+        );
+
+        if (!$existing) {
+            $db->insert('control_mappings', $mapping);
+            $inserted++;
+        }
     }
 
-    echo "Seeded " . count($mappings) . " control mappings\n";
+    echo "Seeded $inserted control mappings (skipped " . (count($mappings) - $inserted) . " existing)\n";
 };

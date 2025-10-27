@@ -90,9 +90,19 @@ return function($db) {
         ['framework' => 'CMMC', 'code' => 'SI.L3-3.14.7', 'title' => 'Identify unauthorized use of systems', 'description' => 'Identify unauthorized use of organizational information systems.', 'ml_level' => 3],
     ];
 
+    $inserted = 0;
     foreach ($controls as $control) {
-        $db->insert('controls', $control);
+        // Check if control already exists
+        $existing = $db->fetchOne(
+            'SELECT id FROM controls WHERE framework = ? AND code = ?',
+            [$control['framework'], $control['code']]
+        );
+
+        if (!$existing) {
+            $db->insert('controls', $control);
+            $inserted++;
+        }
     }
 
-    echo "Seeded " . count($controls) . " CMMC controls\n";
+    echo "Seeded $inserted CMMC controls (skipped " . (count($controls) - $inserted) . " existing)\n";
 };

@@ -49,9 +49,19 @@ return function($db) {
         ['framework' => 'STIG', 'code' => 'SRG-APP-000439-WSR-000151', 'title' => 'The web server must be tuned to handle the operational requirements of the hosted application', 'description' => 'A Denial of Service (DoS) can occur when the web server is so overwhelmed that it can no longer respond to additional requests.', 'stig_version' => 'Web Server V2R3', 'stig_severity' => 'medium'],
     ];
 
+    $inserted = 0;
     foreach ($controls as $control) {
-        $db->insert('controls', $control);
+        // Check if control already exists
+        $existing = $db->fetchOne(
+            'SELECT id FROM controls WHERE framework = ? AND code = ?',
+            [$control['framework'], $control['code']]
+        );
+
+        if (!$existing) {
+            $db->insert('controls', $control);
+            $inserted++;
+        }
     }
 
-    echo "Seeded " . count($controls) . " STIG controls\n";
+    echo "Seeded $inserted STIG controls (skipped " . (count($controls) - $inserted) . " existing)\n";
 };

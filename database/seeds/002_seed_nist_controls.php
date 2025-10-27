@@ -97,9 +97,19 @@ return function($db) {
         ['framework' => 'NIST800171', 'code' => '3.14.7', 'title' => 'Identify unauthorized use of the information system', 'description' => 'Identify unauthorized use of organizational information systems.'],
     ];
 
+    $inserted = 0;
     foreach ($controls as $control) {
-        $db->insert('controls', $control);
+        // Check if control already exists
+        $existing = $db->fetchOne(
+            'SELECT id FROM controls WHERE framework = ? AND code = ?',
+            [$control['framework'], $control['code']]
+        );
+
+        if (!$existing) {
+            $db->insert('controls', $control);
+            $inserted++;
+        }
     }
 
-    echo "Seeded " . count($controls) . " NIST 800-171 controls\n";
+    echo "Seeded $inserted NIST 800-171 controls (skipped " . (count($controls) - $inserted) . " existing)\n";
 };

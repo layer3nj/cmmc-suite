@@ -52,13 +52,11 @@ class Seeder
             throw new \Exception("Seeder file must return a callable");
         }
 
-        $this->db->beginTransaction();
-
+        // Execute seeder (no transaction needed since seeders are idempotent)
         try {
             $seeder($this->db);
-            $this->db->commit();
         } catch (\Exception $e) {
-            $this->db->rollback();
+            error_log("Seeder execution failed: " . $e->getMessage());
             throw $e;
         }
     }

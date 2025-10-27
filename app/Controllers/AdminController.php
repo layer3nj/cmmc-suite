@@ -31,16 +31,25 @@ class AdminController
         $roleCheck = AuthMiddleware::requireRole('admin');
         if ($roleCheck) return $roleCheck;
 
+        global $app;
+        $config = $app->getConfig();
+
+        // Get all users
+        $users = $this->db->fetchAll("SELECT * FROM users ORDER BY created_at DESC");
+
         // Get system stats
         $stats = [
-            'total_users' => $this->db->fetchColumn("SELECT COUNT(*) FROM users"),
+            'total_users' => count($users),
             'total_customers' => $this->db->fetchColumn("SELECT COUNT(*) FROM customers WHERE active = 1"),
             'total_assessments' => $this->db->fetchColumn("SELECT COUNT(*) FROM assessments"),
             'total_poam' => $this->db->fetchColumn("SELECT COUNT(*) FROM poam_items"),
         ];
 
         $content = View::render('admin/index', [
+            'users' => $users,
             'stats' => $stats,
+            'db_driver' => $this->db->getDriver(),
+            'saml_enabled' => $config->get('saml.enabled', false),
         ]);
 
         return new Response($content);

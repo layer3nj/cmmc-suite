@@ -11,13 +11,13 @@ ob_start();
 </div>
 
 <div class="tabs">
-    <a href="<?= $url('controls/cmmc') ?>" class="tab <?= $framework === 'cmmc' ? 'active' : '' ?>">
+    <a href="<?= $url('controls/cmmc') ?>" class="tab <?= $framework === 'CMMC' ? 'active' : '' ?>">
         CMMC 2.0
     </a>
-    <a href="<?= $url('controls/nist') ?>" class="tab <?= $framework === 'nist' ? 'active' : '' ?>">
+    <a href="<?= $url('controls/nist800171') ?>" class="tab <?= $framework === 'NIST800171' ? 'active' : '' ?>">
         NIST SP 800-171
     </a>
-    <a href="<?= $url('controls/stig') ?>" class="tab <?= $framework === 'stig' ? 'active' : '' ?>">
+    <a href="<?= $url('controls/stig') ?>" class="tab <?= $framework === 'STIG' ? 'active' : '' ?>">
         DISA STIG
     </a>
 </div>
@@ -28,9 +28,18 @@ ob_start();
         No controls found. Please run database migrations.
     </div>
 <?php else: ?>
+    <?php
+    // Display friendly framework name
+    $frameworkNames = [
+        'CMMC' => 'CMMC 2.0',
+        'NIST800171' => 'NIST SP 800-171',
+        'STIG' => 'DISA STIG'
+    ];
+    $frameworkDisplay = $frameworkNames[$framework] ?? $framework;
+    ?>
     <div class="card">
         <div class="card-header">
-            <h3><?= ucfirst($framework) ?> Controls</h3>
+            <h3><?= $frameworkDisplay ?> Controls</h3>
             <span class="badge"><?= count($controls) ?> controls</span>
         </div>
         <table class="data-table">
@@ -65,7 +74,7 @@ ob_start();
                     </td>
                     <?php endif; ?>
                     <td>
-                        <a href="<?= $url('controls/' . $framework . '/' . $control['code']) ?>" class="btn btn-sm btn-secondary">View</a>
+                        <a href="<?= $url('controls/' . strtolower($framework) . '/' . urlencode($control['code'])) ?>" class="btn btn-sm btn-secondary">View</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

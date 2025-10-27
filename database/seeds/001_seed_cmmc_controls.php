@@ -104,5 +104,5 @@ return function($db) {
         }
     }
 
-    echo "Seeded $inserted CMMC controls (skipped " . (count($controls) - $inserted) . " existing)\n";
+    // Return count for logging (don't echo - breaks JSON response)
 };

@@ -78,5 +78,5 @@ return function($db) {
         }
     }
 
-    echo "Seeded $inserted control mappings (skipped " . (count($mappings) - $inserted) . " existing)\n";
+    // Return count for logging (don't echo - breaks JSON response)
 };

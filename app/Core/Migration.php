@@ -107,25 +107,17 @@ class Migration
         // Split into individual statements if multiple
         $statements = array_filter(array_map('trim', explode(';', $sql)));
 
-        // Start transaction
-        $transactionStarted = $this->db->beginTransaction();
-
+        // Execute each statement
+        // Note: DDL statements (CREATE TABLE, etc.) cause implicit commits in MySQL
+        // so we don't wrap them in transactions
         try {
             foreach ($statements as $statement) {
                 if (!empty($statement)) {
                     $this->db->query($statement);
                 }
             }
-
-            // Only commit if transaction was started
-            if ($transactionStarted) {
-                $this->db->commit();
-            }
         } catch (\Exception $e) {
-            // Only rollback if transaction is active
-            if ($transactionStarted && $this->db->inTransaction()) {
-                $this->db->rollback();
-            }
+            error_log("Migration statement failed: " . $e->getMessage());
             throw $e;
         }
     }

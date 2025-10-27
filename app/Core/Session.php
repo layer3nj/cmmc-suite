@@ -25,16 +25,30 @@ class Session
             if (!self::has('_user_agent')) {
                 self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
             } elseif (self::get('_user_agent') !== ($_SERVER['HTTP_USER_AGENT'] ?? '')) {
+                // User agent changed - destroy and start fresh session
                 self::destroy();
-                throw new \Exception('Session validation failed');
+                session_start();
+                self::$started = true;
+                self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
+                self::set('_initiated', true);
+                self::set('_created', time());
+                self::set('_last_activity', time());
+                return;
             }
 
             // Check idle timeout
             $idleTimeout = 1800; // 30 minutes
             if (self::has('_last_activity')) {
                 if (time() - self::get('_last_activity') > $idleTimeout) {
+                    // Session expired - destroy and start fresh
                     self::destroy();
-                    throw new \Exception('Session expired due to inactivity');
+                    session_start();
+                    self::$started = true;
+                    self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
+                    self::set('_initiated', true);
+                    self::set('_created', time());
+                    self::set('_last_activity', time());
+                    return;
                 }
             }
             self::set('_last_activity', time());
@@ -43,8 +57,15 @@ class Session
             $absoluteTimeout = 7200; // 2 hours
             if (self::has('_created')) {
                 if (time() - self::get('_created') > $absoluteTimeout) {
+                    // Session expired - destroy and start fresh
                     self::destroy();
-                    throw new \Exception('Session expired');
+                    session_start();
+                    self::$started = true;
+                    self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
+                    self::set('_initiated', true);
+                    self::set('_created', time());
+                    self::set('_last_activity', time());
+                    return;
                 }
             } else {
                 self::set('_created', time());

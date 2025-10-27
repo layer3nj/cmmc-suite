@@ -680,6 +680,7 @@ ACS URL: <span id="sp-acs-url"></span>
 
                     this.textContent = 'Next';
                     this.onclick = nextStep;
+                    this.disabled = false;
                 } else {
                     showMessage('migration-message', data.message, 'error');
                     this.disabled = false;

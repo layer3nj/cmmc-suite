@@ -37,6 +37,9 @@ class Router
 
     private function convertToPattern(string $path): string
     {
+        // Remove leading slash to match Request::path() format
+        $path = ltrim($path, '/');
+
         // Convert {param} to named capture groups
         $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $path);
         return '#^' . $pattern . '$#';

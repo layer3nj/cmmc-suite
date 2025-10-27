@@ -635,6 +635,7 @@ ACS URL: <span id="sp-acs-url"></span>
                     showMessage('db-message', data.message, 'success');
                     this.textContent = 'Next';
                     this.onclick = nextStep;
+                    this.disabled = false;
                 } else {
                     showMessage('db-message', data.message, 'error');
                     this.disabled = false;

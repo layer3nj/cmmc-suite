@@ -1,0 +1,2 @@
+# Application and PHP error logs stored here
+# This directory must be writable by the web server (chmod 770)

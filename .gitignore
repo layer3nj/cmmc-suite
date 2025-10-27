@@ -1,6 +1,7 @@
 config/.env.php
 storage/*
 !storage/.gitkeep
+!storage/**/.gitkeep
 .DS_Store
 *.log
 *.swp

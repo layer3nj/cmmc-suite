@@ -165,6 +165,11 @@ class Database
         return $this->pdo->rollBack();
     }
 
+    public function inTransaction(): bool
+    {
+        return $this->pdo->inTransaction();
+    }
+
     public function tableExists(string $table): bool
     {
         try {

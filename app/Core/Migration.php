@@ -107,7 +107,8 @@ class Migration
         // Split into individual statements if multiple
         $statements = array_filter(array_map('trim', explode(';', $sql)));
 
-        $this->db->beginTransaction();
+        // Start transaction
+        $transactionStarted = $this->db->beginTransaction();
 
         try {
             foreach ($statements as $statement) {
@@ -116,9 +117,15 @@ class Migration
                 }
             }
 
-            $this->db->commit();
+            // Only commit if transaction was started
+            if ($transactionStarted) {
+                $this->db->commit();
+            }
         } catch (\Exception $e) {
-            $this->db->rollback();
+            // Only rollback if transaction is active
+            if ($transactionStarted && $this->db->inTransaction()) {
+                $this->db->rollback();
+            }
             throw $e;
         }
     }

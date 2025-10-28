@@ -90,7 +90,7 @@ ob_start();
                 <td><?= $user['last_login_at'] ? date('M d, Y H:i', strtotime($user['last_login_at'])) : 'Never' ?></td>
                 <td><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
                 <td>
-                    <?php if ($user['id'] !== Session::get('user_id')): ?>
+                    <?php if ($user['id'] !== $current_user_id): ?>
                         <form action="<?= $url('admin/users/' . $user['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Delete this user?');">
                             <?= $csrf() ?>
                             <button type="submit" class="btn btn-sm btn-danger">Delete</button>

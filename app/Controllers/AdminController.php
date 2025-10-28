@@ -34,6 +34,9 @@ class AdminController
         global $app;
         $config = $app->getConfig();
 
+        Session::start();
+        $currentUserId = Session::get('user_id');
+
         // Get all users
         $users = $this->db->fetchAll("SELECT * FROM users ORDER BY created_at DESC");
 
@@ -50,6 +53,7 @@ class AdminController
             'stats' => $stats,
             'db_driver' => $this->db->getDriver(),
             'saml_enabled' => $config->get('saml.enabled', false),
+            'current_user_id' => $currentUserId,
         ]);
 
         return new Response($content);

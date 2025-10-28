@@ -189,6 +189,15 @@ ob_start();
     <?php endif; ?>
 </form>
 
+<?php if ($assessment['status'] === 'draft'): ?>
+<div class="form-actions" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+    <form action="<?= $url('assessments/' . $assessment['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this assessment? This action cannot be undone.');">
+        <?= $csrf() ?>
+        <button type="submit" class="btn btn-danger">Delete Assessment</button>
+    </form>
+</div>
+<?php endif; ?>
+
 <script>
 function publishAssessment() {
     if (!confirm('Are you sure you want to publish this assessment? Once published, findings cannot be modified.')) {

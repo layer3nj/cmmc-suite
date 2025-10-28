@@ -122,12 +122,7 @@ class CustomerController
                 "SELECT COUNT(*) FROM documents WHERE customer_id = ?",
                 [$id]
             ),
-            'latest_sprs' => $this->db->fetchColumn(
-                "SELECT sprs_score FROM assessments
-                 WHERE customer_id = ? AND sprs_score IS NOT NULL
-                 ORDER BY assessed_at DESC LIMIT 1",
-                [$id]
-            ),
+            'latest_sprs' => null, // SPRS score is calculated, not stored in assessments table
         ];
 
         // Get recent assessments

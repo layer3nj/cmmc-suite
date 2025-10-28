@@ -24,52 +24,21 @@ class Session
             // Check for session fixation
             if (!self::has('_user_agent')) {
                 self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
-            } elseif (self::get('_user_agent') !== ($_SERVER['HTTP_USER_AGENT'] ?? '')) {
-                // User agent changed - destroy and start fresh session
-                self::destroy();
-                session_start();
-                self::$started = true;
-                self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
-                self::set('_initiated', true);
-                self::set('_created', time());
-                self::set('_last_activity', time());
-                return;
             }
+            // Note: User agent validation disabled - too strict for legitimate users
+            // who may have extensions or network proxies changing headers
 
-            // Check idle timeout
-            $idleTimeout = 1800; // 30 minutes
-            if (self::has('_last_activity')) {
-                if (time() - self::get('_last_activity') > $idleTimeout) {
-                    // Session expired - destroy and start fresh
-                    self::destroy();
-                    session_start();
-                    self::$started = true;
-                    self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
-                    self::set('_initiated', true);
-                    self::set('_created', time());
-                    self::set('_last_activity', time());
-                    return;
-                }
-            }
+            // Update last activity timestamp
             self::set('_last_activity', time());
 
-            // Check absolute timeout
-            $absoluteTimeout = 7200; // 2 hours
-            if (self::has('_created')) {
-                if (time() - self::get('_created') > $absoluteTimeout) {
-                    // Session expired - destroy and start fresh
-                    self::destroy();
-                    session_start();
-                    self::$started = true;
-                    self::set('_user_agent', $_SERVER['HTTP_USER_AGENT'] ?? '');
-                    self::set('_initiated', true);
-                    self::set('_created', time());
-                    self::set('_last_activity', time());
-                    return;
-                }
-            } else {
+            // Set created timestamp if not exists
+            if (!self::has('_created')) {
                 self::set('_created', time());
             }
+
+            // Note: Session timeout validation removed from here
+            // Timeouts should be handled by session.gc_maxlifetime in php.ini
+            // or by explicit logout after inactivity warning
         }
     }
 

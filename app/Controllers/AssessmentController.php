@@ -277,6 +277,43 @@ class AssessmentController
         return Response::redirect($request->baseUrl() . '/assessments/' . $id);
     }
 
+    public function delete(Request $request, string $id): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/assessments');
+        }
+
+        $assessment = $this->db->fetchOne(
+            "SELECT * FROM assessments WHERE id = ?",
+            [$id]
+        );
+
+        if (!$assessment) {
+            Session::flash('error', 'Assessment not found');
+            return Response::redirect($request->baseUrl() . '/assessments');
+        }
+
+        // Delete associated findings first
+        $this->db->delete('control_findings', 'assessment_id = :id', [':id' => $id]);
+
+        // Delete assessment
+        $this->db->delete('assessments', 'id = :id', [':id' => $id]);
+
+        AuditLogger::log('delete', 'assessment', $id, null, $request->ip());
+
+        Session::flash('success', 'Assessment deleted successfully.');
+        return Response::redirect($request->baseUrl() . '/assessments');
+    }
+
     private function groupFindings(array $findings): array
     {
         $grouped = [];

@@ -101,6 +101,7 @@ class Application
             $this->router->get('/assessments/{id}', 'App\Controllers\AssessmentController@show');
             $this->router->post('/assessments/{id}/findings', 'App\Controllers\AssessmentController@updateFindings');
             $this->router->post('/assessments/{id}/publish', 'App\Controllers\AssessmentController@publish');
+            $this->router->post('/assessments/{id}/delete', 'App\Controllers\AssessmentController@delete');
 
             // SPRS Scoring
             $this->router->get('/sprs', 'App\Controllers\SprsController@index');

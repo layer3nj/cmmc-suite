@@ -191,10 +191,16 @@ class AdminController
         $roleCheck = AuthMiddleware::requireRole('admin');
         if ($roleCheck) return $roleCheck;
 
-        $settings = $this->db->fetchAll("SELECT * FROM settings ORDER BY k");
+        // Fetch settings and convert to key-value array
+        $settingsRows = $this->db->fetchAll("SELECT k, v FROM settings ORDER BY k");
+        $settings = [];
+        foreach ($settingsRows as $row) {
+            $settings[$row['k']] = $row['v'];
+        }
 
         $content = View::render('admin/settings', [
             'settings' => $settings,
+            'base_url' => $request->baseUrl(),
         ]);
 
         return new Response($content);
@@ -211,34 +217,84 @@ class AdminController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/settings');
         }
 
-        // Update settings from POST data
-        $settings = $request->post('settings', []);
+        // Handle logo upload
+        if (!empty($_FILES['logo']['name'])) {
+            $uploadDir = ROOT_PATH . '/public/uploads/logos';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
 
-        foreach ($settings as $key => $value) {
-            $existing = $this->db->fetchOne(
-                "SELECT * FROM settings WHERE k = ?",
-                [$key]
-            );
+            $fileExt = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+            $allowedExts = ['png', 'jpg', 'jpeg', 'svg'];
 
-            if ($existing) {
-                $this->db->update('settings', [
-                    'v' => $value,
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ], 'k = :k', [':k' => $key]);
-            } else {
-                $this->db->insert('settings', [
-                    'k' => $key,
-                    'v' => $value,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
+            if (in_array($fileExt, $allowedExts) && $_FILES['logo']['size'] <= 2097152) { // 2MB limit
+                $fileName = 'logo_' . time() . '.' . $fileExt;
+                $filePath = $uploadDir . '/' . $fileName;
+
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $filePath)) {
+                    // Delete old logo if exists
+                    $oldLogo = $this->db->fetchOne("SELECT v FROM settings WHERE k = ?", ['logo_path']);
+                    if ($oldLogo && file_exists(ROOT_PATH . '/public' . $oldLogo['v'])) {
+                        unlink(ROOT_PATH . '/public' . $oldLogo['v']);
+                    }
+
+                    $_POST['logo_path'] = '/uploads/logos/' . $fileName;
+                }
             }
         }
 
-        AuditLogger::log('update_settings', 'settings', null, $settings, $request->ip());
+        // Settings fields to save
+        $settingsFields = [
+            'site_name', 'logo_path', 'primary_color', 'secondary_color', 'timezone',
+            'saml_enabled', 'saml_idp_entity_id', 'saml_idp_sso_url', 'saml_idp_cert',
+            'force_https', 'session_idle_timeout', 'session_absolute_timeout', 'rate_limit_enabled',
+            'max_upload_size', 'allowed_file_types',
+            'smtp_host', 'smtp_port', 'smtp_encryption', 'smtp_username', 'smtp_password', 'from_email'
+        ];
+
+        $savedSettings = [];
+        foreach ($settingsFields as $field) {
+            $value = $request->post($field);
+
+            // Skip empty password field (only update if changed)
+            if ($field === 'smtp_password' && empty($value)) {
+                continue;
+            }
+
+            // Handle checkboxes (they're only present if checked)
+            if (in_array($field, ['saml_enabled', 'force_https', 'rate_limit_enabled'])) {
+                $value = $value === '1' ? '1' : '0';
+            }
+
+            if ($value !== null) {
+                $existing = $this->db->fetchOne(
+                    "SELECT * FROM settings WHERE k = ?",
+                    [$field]
+                );
+
+                if ($existing) {
+                    $this->db->update('settings', [
+                        'v' => $value,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ], 'k = :k', [':k' => $field]);
+                } else {
+                    $this->db->insert('settings', [
+                        'k' => $field,
+                        'v' => $value,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                $savedSettings[$field] = $value;
+            }
+        }
+
+        AuditLogger::log('update_settings', 'settings', null, $savedSettings, $request->ip());
 
         Session::flash('success', 'Settings updated successfully.');
         return Response::redirect($request->baseUrl() . '/admin/settings');

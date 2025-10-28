@@ -54,6 +54,10 @@ class View
             return Session::getFlash('success');
         };
 
+        $info = function() {
+            return Session::getFlash('info');
+        };
+
         $url = function($path = '') {
             $request = new Request();
             return rtrim($request->baseUrl(), '/') . '/' . ltrim($path, '/');

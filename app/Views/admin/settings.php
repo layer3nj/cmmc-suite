@@ -25,17 +25,40 @@ ob_start();
     <div class="alert alert-error"><?= $e($errorMessage) ?></div>
 <?php endif; ?>
 
-<form action="<?= $url('admin/settings') ?>" method="POST">
+<form action="<?= $url('admin/settings') ?>" method="POST" enctype="multipart/form-data">
     <?= $csrf() ?>
 
     <div class="card">
         <div class="card-header">
-            <h3>Application Settings</h3>
+            <h3>Branding & Appearance</h3>
         </div>
 
         <div class="form-group">
-            <label>Application Name</label>
-            <input type="text" name="app_name" value="<?= $e($settings['app_name'] ?? 'CMMC Compliance Suite') ?>" class="form-control">
+            <label>Site Name</label>
+            <input type="text" name="site_name" value="<?= $e($settings['site_name'] ?? 'CMMC Compliance Suite') ?>" required class="form-control">
+            <small>This name appears in the header and page titles</small>
+        </div>
+
+        <div class="form-group">
+            <label>Site Logo</label>
+            <?php if (!empty($settings['logo_path'])): ?>
+                <div style="margin-bottom: 10px;">
+                    <img src="<?= $url($settings['logo_path']) ?>" alt="Current Logo" style="max-height: 60px; border: 1px solid #e2e8f0; padding: 5px; border-radius: 4px;">
+                </div>
+            <?php endif; ?>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml" class="form-control">
+            <small>Upload PNG, JPG, or SVG. Recommended size: 200x50px</small>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Primary Color</label>
+                <input type="color" name="primary_color" value="<?= $e($settings['primary_color'] ?? '#667eea') ?>" class="form-control" style="height: 40px;">
+            </div>
+            <div class="form-group">
+                <label>Secondary Color</label>
+                <input type="color" name="secondary_color" value="<?= $e($settings['secondary_color'] ?? '#764ba2') ?>" class="form-control" style="height: 40px;">
+            </div>
         </div>
 
         <div class="form-group">
@@ -48,6 +71,54 @@ ob_start();
                 <option value="America/Los_Angeles" <?= ($settings['timezone'] ?? '') === 'America/Los_Angeles' ? 'selected' : '' ?>>Pacific Time</option>
             </select>
         </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+            <h3>SAML SSO Configuration</h3>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="saml_enabled" value="1" <?= !empty($settings['saml_enabled']) ? 'checked' : '' ?> id="saml-toggle">
+                Enable SAML Single Sign-On
+            </label>
+            <small style="display: block; margin-top: 5px;">Allow users to log in with Microsoft Entra ID (Azure AD)</small>
+        </div>
+
+        <div id="saml-config-fields" style="<?= empty($settings['saml_enabled']) ? 'display: none;' : '' ?>">
+            <div class="alert alert-info">
+                <strong>Service Provider Information:</strong><br>
+                Entity ID: <code><?= $e($base_url ?? '') ?></code><br>
+                ACS URL: <code><?= $e($base_url ?? '') ?>/saml/acs</code>
+            </div>
+
+            <div class="form-group">
+                <label>IdP Entity ID</label>
+                <input type="text" name="saml_idp_entity_id" value="<?= $e($settings['saml_idp_entity_id'] ?? '') ?>" class="form-control" placeholder="https://sts.windows.net/YOUR-TENANT-ID/">
+                <small>Your Microsoft Entra tenant's entity ID</small>
+            </div>
+
+            <div class="form-group">
+                <label>IdP SSO URL</label>
+                <input type="url" name="saml_idp_sso_url" value="<?= $e($settings['saml_idp_sso_url'] ?? '') ?>" class="form-control" placeholder="https://login.microsoftonline.com/YOUR-TENANT-ID/saml2">
+                <small>The SAML sign-on URL from your IdP</small>
+            </div>
+
+            <div class="form-group">
+                <label>IdP x509 Certificate</label>
+                <textarea name="saml_idp_cert" rows="6" class="form-control" placeholder="-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----"><?= $e($settings['saml_idp_cert'] ?? '') ?></textarea>
+                <small>Paste the x509 certificate from your IdP (with BEGIN/END lines)</small>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('saml-toggle')?.addEventListener('change', function() {
+                document.getElementById('saml-config-fields').style.display = this.checked ? 'block' : 'none';
+            });
+        </script>
     </div>
 
     <div class="card" style="margin-top: 20px;">

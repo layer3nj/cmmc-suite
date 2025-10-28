@@ -223,7 +223,7 @@ class AdminController
 
         // Handle logo upload
         if (!empty($_FILES['logo']['name'])) {
-            $uploadDir = ROOT_PATH . '/public/uploads/logos';
+            $uploadDir = BASE_PATH . '/public/uploads/logos';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
@@ -238,8 +238,8 @@ class AdminController
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], $filePath)) {
                     // Delete old logo if exists
                     $oldLogo = $this->db->fetchOne("SELECT v FROM settings WHERE k = ?", ['logo_path']);
-                    if ($oldLogo && file_exists(ROOT_PATH . '/public' . $oldLogo['v'])) {
-                        unlink(ROOT_PATH . '/public' . $oldLogo['v']);
+                    if ($oldLogo && file_exists(BASE_PATH . '/public' . $oldLogo['v'])) {
+                        unlink(BASE_PATH . '/public' . $oldLogo['v']);
                     }
 
                     $_POST['logo_path'] = '/uploads/logos/' . $fileName;

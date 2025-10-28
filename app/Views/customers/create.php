@@ -10,8 +10,8 @@ ob_start();
     <p class="page-subtitle">Create a new customer account</p>
 </div>
 
-<?php if ($error = $error()): ?>
-    <div class="alert alert-error"><?= $e($error) ?></div>
+<?php if ($errorMessage = $error()): ?>
+    <div class="alert alert-error"><?= $e($errorMessage) ?></div>
 <?php endif; ?>
 
 <div class="card">

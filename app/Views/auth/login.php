@@ -163,8 +163,8 @@
         </div>
 
         <div class="login-body">
-            <?php if ($error = $error()): ?>
-                <div class="alert alert-error"><?= $e($error) ?></div>
+            <?php if ($errorMessage = $error()): ?>
+                <div class="alert alert-error"><?= $e($errorMessage) ?></div>
             <?php endif; ?>
 
             <?php if ($success = $success()): ?>

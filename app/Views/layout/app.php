@@ -107,10 +107,10 @@
                     </div>
                 <?php endif; ?>
 
-                <?php if ($error = $error()): ?>
+                <?php if ($errorMessage = $error()): ?>
                     <div class="alert alert-error">
                         <span class="alert-icon">✗</span>
-                        <?= $e($error) ?>
+                        <?= $e($errorMessage) ?>
                     </div>
                 <?php endif; ?>
 

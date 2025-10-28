@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Assessment - ' . $assessment['framework'];
+$page_title = 'Assessment - ' . ($assessment['framework'] ?? 'Unknown');
 $current_page = 'assessments';
 
 ob_start();
@@ -9,7 +9,7 @@ ob_start();
     <div class="breadcrumb">
         <a href="<?= $url('assessments') ?>">Assessments</a> / Assessment #<?= $e($assessment['id']) ?>
     </div>
-    <h1><?= $e($assessment['framework']) ?> Assessment</h1>
+    <h1><?= $e($assessment['framework'] ?? 'Unknown Framework') ?> Assessment</h1>
     <div class="page-actions">
         <?php if ($assessment['status'] === 'draft'): ?>
             <button type="button" class="btn btn-primary" onclick="publishAssessment()">Publish Assessment</button>
@@ -36,8 +36,26 @@ ob_start();
     <table class="info-table">
         <tr>
             <th>Framework</th>
-            <td><?= $e($assessment['framework']) ?></td>
+            <td><?= $e($assessment['framework'] ?? 'Not specified') ?></td>
         </tr>
+        <?php if (!empty($assessment['assessment_type'])): ?>
+        <tr>
+            <th>Assessment Type</th>
+            <td><?= $e(ucfirst($assessment['assessment_type'])) ?></td>
+        </tr>
+        <?php endif; ?>
+        <?php if (!empty($assessment['scope'])): ?>
+        <tr>
+            <th>Scope</th>
+            <td><?= $e($assessment['scope']) ?></td>
+        </tr>
+        <?php endif; ?>
+        <?php if (!empty($assessment['target_level'])): ?>
+        <tr>
+            <th>Target Level</th>
+            <td>Level <?= $e($assessment['target_level']) ?></td>
+        </tr>
+        <?php endif; ?>
         <tr>
             <th>Assessor</th>
             <td><?= $e($assessment['assessor_name'] ?? 'Unknown') ?></td>
@@ -58,13 +76,13 @@ ob_start();
             <th>Created</th>
             <td><?= date('M d, Y g:i A', strtotime($assessment['created_at'])) ?></td>
         </tr>
-        <?php if ($assessment['assessed_at']): ?>
+        <?php if (!empty($assessment['assessed_at'])): ?>
         <tr>
             <th>Assessed Date</th>
             <td><?= date('M d, Y g:i A', strtotime($assessment['assessed_at'])) ?></td>
         </tr>
         <?php endif; ?>
-        <?php if ($assessment['sprs_score'] !== null): ?>
+        <?php if (isset($assessment['sprs_score']) && $assessment['sprs_score'] !== null): ?>
         <tr>
             <th>SPRS Score</th>
             <td>

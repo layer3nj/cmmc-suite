@@ -97,11 +97,18 @@ class AssessmentController
 
         $notes = trim($request->post('notes'));
         $framework = $request->post('framework', 'NIST800171');
+        $assessmentType = $request->post('assessment_type', 'self');
+        $scope = trim($request->post('scope'));
+        $targetLevel = $request->post('target_level');
 
         // Create assessment
         $assessmentId = $this->db->insert('assessments', [
             'customer_id' => $customerId,
             'assessor_user_id' => Session::get('user_id'),
+            'framework' => $framework,
+            'assessment_type' => $assessmentType,
+            'scope' => $scope,
+            'target_level' => $targetLevel,
             'notes' => $notes,
             'status' => 'draft',
             'created_at' => date('Y-m-d H:i:s'),

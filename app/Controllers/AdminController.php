@@ -258,40 +258,43 @@ class AdminController
 
         $savedSettings = [];
         foreach ($settingsFields as $field) {
-            $value = $request->post($field);
-
             // Skip empty password field (only update if changed)
-            if ($field === 'smtp_password' && empty($value)) {
+            if ($field === 'smtp_password' && empty($request->post($field))) {
                 continue;
             }
 
             // Handle checkboxes (they're only present if checked)
             if (in_array($field, ['saml_enabled', 'force_https', 'rate_limit_enabled'])) {
-                $value = $value === '1' ? '1' : '0';
+                $value = $request->post($field) === '1' ? '1' : '0';
+            } else {
+                $value = $request->post($field);
             }
 
-            if ($value !== null) {
-                $existing = $this->db->fetchOne(
-                    "SELECT * FROM settings WHERE k = ?",
-                    [$field]
-                );
-
-                if ($existing) {
-                    $this->db->update('settings', [
-                        'v' => $value,
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ], 'k = :k', [':k' => $field]);
-                } else {
-                    $this->db->insert('settings', [
-                        'k' => $field,
-                        'v' => $value,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
-                }
-
-                $savedSettings[$field] = $value;
+            // Skip null values (except for checkboxes which are always set)
+            if ($value === null && !in_array($field, ['saml_enabled', 'force_https', 'rate_limit_enabled'])) {
+                continue;
             }
+
+            $existing = $this->db->fetchOne(
+                "SELECT * FROM settings WHERE k = ?",
+                [$field]
+            );
+
+            if ($existing) {
+                $this->db->update('settings', [
+                    'v' => $value,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], 'k = :k', [':k' => $field]);
+            } else {
+                $this->db->insert('settings', [
+                    'k' => $field,
+                    'v' => $value,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $savedSettings[$field] = $value;
         }
 
         AuditLogger::log('update_settings', 'settings', null, $savedSettings, $request->ip());
@@ -346,11 +349,106 @@ class AdminController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/import');
         }
 
-        // Handle import file
-        Session::flash('info', 'Import functionality coming soon.');
+        $importType = $request->post('import_type');
+
+        try {
+            if ($importType === 'controls') {
+                $this->importControls($request);
+            } elseif ($importType === 'customers') {
+                $this->importCustomers($request);
+            } else {
+                Session::flash('error', 'Invalid import type.');
+                return Response::redirect($request->baseUrl() . '/admin/import');
+            }
+        } catch (\Exception $e) {
+            Session::flash('error', 'Import failed: ' . $e->getMessage());
+            return Response::redirect($request->baseUrl() . '/admin/import');
+        }
+
         return Response::redirect($request->baseUrl() . '/admin/import');
+    }
+
+    private function importControls(Request $request): void
+    {
+        $source = $request->post('source');
+
+        // Run the seeders to import controls
+        if (in_array($source, ['cmmc', 'nist800171', 'nist80053'])) {
+            $seedFiles = [
+                BASE_PATH . '/database/seeds/001_seed_cmmc_controls.php',
+                BASE_PATH . '/database/seeds/002_seed_nist_controls.php',
+                BASE_PATH . '/database/seeds/003_seed_stig_controls.php',
+                BASE_PATH . '/database/seeds/005_expand_control_coverage.php',
+            ];
+
+            $totalInserted = 0;
+            foreach ($seedFiles as $seedFile) {
+                if (file_exists($seedFile)) {
+                    $seeder = require $seedFile;
+                    if (is_callable($seeder)) {
+                        $inserted = $seeder($this->db);
+                        $totalInserted += $inserted;
+                    }
+                }
+            }
+
+            Session::flash('success', "Successfully imported {$totalInserted} controls.");
+            AuditLogger::log('import', 'controls', null, ['source' => $source, 'count' => $totalInserted], $request->ip());
+        } else {
+            Session::flash('error', 'Source not yet implemented. Please use CMMC, NIST800171, or NIST80053.');
+        }
+    }
+
+    private function importCustomers(Request $request): void
+    {
+        if (empty($_FILES['import_file']['name'])) {
+            throw new \Exception('No file uploaded');
+        }
+
+        $file = $_FILES['import_file']['tmp_name'];
+        $handle = fopen($file, 'r');
+
+        if (!$handle) {
+            throw new \Exception('Could not open file');
+        }
+
+        // Read header
+        $header = fgetcsv($handle);
+        $imported = 0;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            if (count($row) < 2) continue; // Skip empty rows
+
+            $data = array_combine($header, $row);
+
+            // Check if customer already exists
+            $existing = $this->db->fetchOne(
+                "SELECT id FROM customers WHERE name = ?",
+                [$data['name']]
+            );
+
+            if (!$existing) {
+                $this->db->insert('customers', [
+                    'name' => $data['name'],
+                    'contact_name' => $data['contact_name'] ?? null,
+                    'contact_email' => $data['contact_email'] ?? null,
+                    'contact_phone' => $data['phone'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'active' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+                $imported++;
+            }
+        }
+
+        fclose($handle);
+
+        Session::flash('success', "Successfully imported {$imported} customers.");
+        AuditLogger::log('import', 'customers', null, ['count' => $imported], $request->ip());
     }
 }

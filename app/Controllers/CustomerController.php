@@ -110,23 +110,49 @@ class CustomerController
 
         // Get customer statistics
         $stats = [
-            'assessments_count' => $this->db->fetchColumn(
+            'total_assessments' => $this->db->fetchColumn(
                 "SELECT COUNT(*) FROM assessments WHERE customer_id = ?",
                 [$id]
             ),
-            'poam_count' => $this->db->fetchColumn(
+            'open_poam' => $this->db->fetchColumn(
                 "SELECT COUNT(*) FROM poam_items WHERE customer_id = ? AND status IN ('open', 'in_progress')",
                 [$id]
             ),
-            'documents_count' => $this->db->fetchColumn(
+            'total_documents' => $this->db->fetchColumn(
                 "SELECT COUNT(*) FROM documents WHERE customer_id = ?",
+                [$id]
+            ),
+            'latest_sprs' => $this->db->fetchColumn(
+                "SELECT sprs_score FROM assessments
+                 WHERE customer_id = ? AND sprs_score IS NOT NULL
+                 ORDER BY assessed_at DESC LIMIT 1",
                 [$id]
             ),
         ];
 
+        // Get recent assessments
+        $recent_assessments = $this->db->fetchAll(
+            "SELECT * FROM assessments
+             WHERE customer_id = ?
+             ORDER BY created_at DESC
+             LIMIT 5",
+            [$id]
+        );
+
+        // Get recent POA&M items
+        $recent_poam = $this->db->fetchAll(
+            "SELECT * FROM poam_items
+             WHERE customer_id = ? AND status IN ('open', 'in_progress')
+             ORDER BY planned_completion_date ASC
+             LIMIT 5",
+            [$id]
+        );
+
         $content = View::render('customers/show', [
             'customer' => $customer,
             'stats' => $stats,
+            'recent_assessments' => $recent_assessments,
+            'recent_poam' => $recent_poam,
         ]);
 
         return new Response($content);

@@ -39,8 +39,13 @@ ob_start();
             <tbody>
                 <?php foreach ($assessments as $assessment): ?>
                 <tr>
-                    <td><strong><?= $e($assessment['name']) ?></strong></td>
-                    <td><span class="badge"><?= $e($assessment['framework']) ?></span></td>
+                    <td>
+                        <strong><?= $e($assessment['framework'] ?? 'Unknown') ?> Assessment #<?= $e($assessment['id']) ?></strong>
+                        <?php if (!empty($assessment['scope'])): ?>
+                            <br><small><?= $e($assessment['scope']) ?></small>
+                        <?php endif; ?>
+                    </td>
+                    <td><span class="badge"><?= $e($assessment['framework'] ?? 'N/A') ?></span></td>
                     <td>
                         <?php if ($assessment['status'] === 'published'): ?>
                             <span class="badge badge-success">Published</span>

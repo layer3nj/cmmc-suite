@@ -26,16 +26,28 @@ ob_start();
             <label for="framework">Framework <span class="required">*</span></label>
             <select name="framework" id="framework" class="form-control" required>
                 <option value="">Select framework...</option>
-                <option value="CMMC" <?= $old('framework') === 'CMMC' ? 'selected' : '' ?>>CMMC 2.0</option>
-                <option value="NIST800171" <?= $old('framework') === 'NIST800171' ? 'selected' : '' ?>>NIST SP 800-171</option>
-                <option value="NIST80053" <?= $old('framework') === 'NIST80053' ? 'selected' : '' ?>>NIST SP 800-53</option>
-                <option value="STIG" <?= $old('framework') === 'STIG' ? 'selected' : '' ?>>DISA STIG</option>
+                <optgroup label="DoD / Government">
+                    <option value="CMMC" <?= $old('framework') === 'CMMC' ? 'selected' : '' ?>>CMMC 2.0</option>
+                    <option value="NIST800171" <?= $old('framework') === 'NIST800171' ? 'selected' : '' ?>>NIST SP 800-171</option>
+                    <option value="NIST80053" <?= $old('framework') === 'NIST80053' ? 'selected' : '' ?>>NIST SP 800-53</option>
+                    <option value="STIG" <?= $old('framework') === 'STIG' ? 'selected' : '' ?>>DISA STIG</option>
+                </optgroup>
+                <optgroup label="Healthcare">
+                    <option value="HIPAA" <?= $old('framework') === 'HIPAA' ? 'selected' : '' ?>>HIPAA Security Rule</option>
+                </optgroup>
+                <optgroup label="Financial">
+                    <option value="FTC-SAFEGUARDS" <?= $old('framework') === 'FTC-SAFEGUARDS' ? 'selected' : '' ?>>FTC Safeguards Rule</option>
+                    <option value="PCI-DSS" <?= $old('framework') === 'PCI-DSS' ? 'selected' : '' ?>>PCI-DSS v4.0</option>
+                </optgroup>
+                <optgroup label="Audit & Certification">
+                    <option value="SOC2" <?= $old('framework') === 'SOC2' ? 'selected' : '' ?>>SOC 2 (Trust Services)</option>
+                    <option value="ISO27001" <?= $old('framework') === 'ISO27001' ? 'selected' : '' ?>>ISO 27001:2022</option>
+                </optgroup>
             </select>
             <?php if ($fieldError = $error('framework')): ?>
                 <span class="field-error"><?= $e($fieldError) ?></span>
             <?php endif; ?>
         </div>
-
         <div class="form-group">
             <label for="assessment_type">Assessment Type <span class="required">*</span></label>
             <select name="assessment_type" id="assessment_type" class="form-control" required>

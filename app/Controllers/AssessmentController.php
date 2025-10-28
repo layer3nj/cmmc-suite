@@ -31,10 +31,14 @@ class AssessmentController
 
         Session::start();
         $customerId = Session::get('current_customer_id');
+        $currentCustomer = Session::get('current_customer_name');
 
         if (!$customerId) {
-            Session::flash('error', 'Please select a customer first.');
-            return Response::redirect($request->baseUrl() . '/customers');
+            $content = View::render('assessments/index', [
+                'assessments' => [],
+                'current_customer' => null,
+            ]);
+            return new Response($content);
         }
 
         $assessments = $this->db->fetchAll(
@@ -46,8 +50,16 @@ class AssessmentController
             [$customerId]
         );
 
+        // Calculate progress for each assessment
+        foreach ($assessments as &$assessment) {
+            $stats = $this->getAssessmentStats($assessment['id']);
+            $assessment['total_controls'] = $stats['total'] ?? 0;
+            $assessment['controls_completed'] = ($stats['met'] ?? 0) + ($stats['partially_met'] ?? 0) + ($stats['not_applicable'] ?? 0);
+        }
+
         $content = View::render('assessments/index', [
             'assessments' => $assessments,
+            'current_customer' => $currentCustomer,
         ]);
 
         return new Response($content);

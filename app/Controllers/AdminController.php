@@ -377,29 +377,30 @@ class AdminController
         $source = $request->post('source');
 
         // Run the seeders to import controls
-        if (in_array($source, ['cmmc', 'nist800171', 'nist80053'])) {
-            $seedFiles = [
-                BASE_PATH . '/database/seeds/001_seed_cmmc_controls.php',
-                BASE_PATH . '/database/seeds/002_seed_nist_controls.php',
-                BASE_PATH . '/database/seeds/003_seed_stig_controls.php',
-                BASE_PATH . '/database/seeds/005_expand_control_coverage.php',
-            ];
+        $seedFiles = [
+            BASE_PATH . '/database/seeds/001_seed_cmmc_controls.php',
+            BASE_PATH . '/database/seeds/002_seed_nist_controls.php',
+            BASE_PATH . '/database/seeds/003_seed_stig_controls.php',
+            BASE_PATH . '/database/seeds/005_expand_control_coverage.php',
+            BASE_PATH . '/database/seeds/006_additional_frameworks.php',
+        ];
 
-            $totalInserted = 0;
-            foreach ($seedFiles as $seedFile) {
-                if (file_exists($seedFile)) {
-                    $seeder = require $seedFile;
-                    if (is_callable($seeder)) {
-                        $inserted = $seeder($this->db);
-                        $totalInserted += $inserted;
-                    }
+        $totalInserted = 0;
+        foreach ($seedFiles as $seedFile) {
+            if (file_exists($seedFile)) {
+                $seeder = require $seedFile;
+                if (is_callable($seeder)) {
+                    $inserted = $seeder($this->db);
+                    $totalInserted += $inserted;
                 }
             }
+        }
 
-            Session::flash('success', "Successfully imported {$totalInserted} controls.");
+        if ($totalInserted > 0) {
+            Session::flash('success', "Successfully imported {$totalInserted} controls across all frameworks.");
             AuditLogger::log('import', 'controls', null, ['source' => $source, 'count' => $totalInserted], $request->ip());
         } else {
-            Session::flash('error', 'Source not yet implemented. Please use CMMC, NIST800171, or NIST80053.');
+            Session::flash('info', 'No new controls to import. All controls are already in the database.');
         }
     }
 

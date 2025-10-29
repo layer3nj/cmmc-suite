@@ -475,8 +475,10 @@ class AdminController
 
             $driver = $this->db->getDriver();
             $migrationsRun = 0;
+            $migrationsSkipped = 0;
 
             foreach ($migrationFiles as $file) {
+                $migrationName = basename($file);
                 $migration = require $file;
 
                 if (isset($migration[$driver])) {
@@ -484,24 +486,38 @@ class AdminController
                         $this->db->query($migration[$driver]);
                         $migrationsRun++;
                     } catch (\PDOException $e) {
-                        // Skip if migration already applied (table/column exists)
-                        if (strpos($e->getMessage(), 'already exists') !== false ||
-                            strpos($e->getMessage(), 'Duplicate column') !== false) {
+                        $errorMsg = $e->getMessage();
+
+                        // Skip if migration already applied (table/column/index exists)
+                        if (stripos($errorMsg, 'already exists') !== false ||
+                            stripos($errorMsg, 'Duplicate column') !== false ||
+                            stripos($errorMsg, 'Duplicate key') !== false ||
+                            stripos($errorMsg, 'Multiple primary key') !== false) {
+                            $migrationsSkipped++;
                             continue;
                         }
-                        throw $e;
+
+                        // If it's a real error, throw it
+                        throw new \Exception("Migration {$migrationName} failed: " . $errorMsg);
                     }
                 }
             }
 
             if ($migrationsRun > 0) {
-                Session::flash('success', "Successfully ran {$migrationsRun} database migration(s).");
-                AuditLogger::log('run_migrations', 'database', null, ['count' => $migrationsRun], $request->ip());
+                $message = "Successfully ran {$migrationsRun} database migration(s).";
+                if ($migrationsSkipped > 0) {
+                    $message .= " ({$migrationsSkipped} already applied)";
+                }
+                Session::flash('success', $message);
+                AuditLogger::log('run_migrations', 'database', null, [
+                    'count' => $migrationsRun,
+                    'skipped' => $migrationsSkipped
+                ], $request->ip());
             } else {
                 Session::flash('info', 'All migrations are already up to date.');
             }
         } catch (\Exception $e) {
-            Session::flash('error', 'Migration failed: ' . $e->getMessage());
+            Session::flash('error', $e->getMessage());
         }
 
         return Response::redirect($request->baseUrl() . '/admin/import');

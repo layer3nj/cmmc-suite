@@ -20,7 +20,7 @@ return function($db) {
         // Additional Administrative Safeguards
         ['framework' => 'HIPAA', 'code' => '164.308(a)(4)(ii)(A)', 'title' => 'Isolating Health Care Clearinghouse Functions (Required)', 'description' => 'If a health care clearinghouse is part of a larger organization, implement policies and procedures that protect ePHI from the larger organization.'],
         ['framework' => 'HIPAA', 'code' => '164.308(a)(4)(ii)(B)', 'title' => 'Access Authorization (Addressable)', 'description' => 'Implement policies and procedures for granting access to ePHI, for example through access to a workstation, transaction, program, process, or other mechanism.'],
-        ['framework' => 'HIPAA', 'code' => '164.308(a)(4)(ii)(C)', 'title' => 'Access Establishment and Modification (Addressable)', 'description' => 'Implement policies and procedures that, based upon the access authorization, establish, document, review, and modify a user\'s right of access to a workstation, transaction, program, or process.'],
+        ['framework' => 'HIPAA', 'code' => '164.308(a)(4)(ii)(C)', 'title' => 'Access Establishment and Modification (Addressable)', 'description' => "Implement policies and procedures that, based upon the access authorization, establish, document, review, and modify a user's right of access to a workstation, transaction, program, or process."],
         ['framework' => 'HIPAA', 'code' => '164.308(a)(5)(ii)(A)', 'title' => 'Security Reminders (Addressable)', 'description' => 'Implement periodic security updates and reminders to workforce members.'],
         ['framework' => 'HIPAA', 'code' => '164.308(a)(5)(ii)(B)', 'title' => 'Protection from Malicious Software (Addressable)', 'description' => 'Implement procedures for guarding against, detecting, and reporting malicious software.'],
         ['framework' => 'HIPAA', 'code' => '164.308(a)(5)(ii)(C)', 'title' => 'Log-in Monitoring (Addressable)', 'description' => 'Implement procedures for monitoring log-in attempts and reporting discrepancies.'],
@@ -33,7 +33,7 @@ return function($db) {
         // Additional Physical Safeguards
         ['framework' => 'HIPAA', 'code' => '164.310(a)(2)(i)', 'title' => 'Contingency Operations (Addressable)', 'description' => 'Establish and implement procedures that allow facility access in support of restoration of lost data under the disaster recovery plan.'],
         ['framework' => 'HIPAA', 'code' => '164.310(a)(2)(ii)', 'title' => 'Facility Security Plan (Addressable)', 'description' => 'Implement policies and procedures to safeguard the facility and the equipment therein from unauthorized physical access, tampering, and theft.'],
-        ['framework' => 'HIPAA', 'code' => '164.310(a)(2)(iii)', 'title' => 'Access Control and Validation Procedures (Addressable)', 'description' => 'Implement procedures to control and validate a person\'s access to facilities based on their role or function.'],
+        ['framework' => 'HIPAA', 'code' => '164.310(a)(2)(iii)', 'title' => 'Access Control and Validation Procedures (Addressable)', 'description' => "Implement procedures to control and validate a person's access to facilities based on their role or function."],
         ['framework' => 'HIPAA', 'code' => '164.310(a)(2)(iv)', 'title' => 'Maintenance Records (Addressable)', 'description' => 'Implement policies and procedures to document repairs and modifications to the physical components of a facility.'],
         ['framework' => 'HIPAA', 'code' => '164.310(d)(2)(iii)', 'title' => 'Accountability (Addressable)', 'description' => 'Maintain a record of the movements of hardware and electronic media and any person responsible therefor.'],
         ['framework' => 'HIPAA', 'code' => '164.310(d)(2)(iv)', 'title' => 'Data Backup and Storage (Addressable)', 'description' => 'Create a retrievable, exact copy of ePHI, when needed, before movement of equipment.'],
@@ -96,7 +96,7 @@ return function($db) {
         // Requirement 8: Identify Users and Authenticate Access (additional)
         ['framework' => 'PCI-DSS', 'code' => '8.1.1', 'title' => 'Processes for User Identification', 'description' => 'Processes and mechanisms for identifying and authenticating users are defined and understood.'],
         ['framework' => 'PCI-DSS', 'code' => '8.2.2', 'title' => 'Strong Authentication Factors Implemented', 'description' => 'Strong authentication for users is accomplished by implementing one or more of the defined authentication factors.'],
-        ['framework' => 'PCI-DSS', 'code' => '8.3.2', 'title' => 'MFA for Remote Access', 'description' => 'MFA is implemented for all remote network access originating from outside the entity\'s network.'],
+        ['framework' => 'PCI-DSS', 'code' => '8.3.2', 'title' => 'MFA for Remote Access', 'description' => "MFA is implemented for all remote network access originating from outside the entity's network."],
         ['framework' => 'PCI-DSS', 'code' => '8.4.1', 'title' => 'MFA Systems Protected', 'description' => 'MFA systems are implemented to resist replay attacks.'],
         ['framework' => 'PCI-DSS', 'code' => '8.5.1', 'title' => 'MFA for Administrator Access', 'description' => 'MFA is implemented for all access into the CDE with administrative privileges.'],
 

@@ -108,6 +108,7 @@ class DocumentController
         // Save to database
         $documentId = $this->db->insert('documents', [
             'customer_id' => $customerId,
+            'title' => $request->post('title') ?: $file['name'], // Use provided title or filename
             'file_name' => $file['name'],
             'mime_type' => $file['type'],
             'file_size' => $file['size'],

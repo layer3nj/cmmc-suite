@@ -70,18 +70,18 @@ ob_start();
             <tbody>
                 <?php foreach ($documents as $doc): ?>
                 <tr>
-                    <td><strong><?= $e($doc['title']) ?></strong></td>
+                    <td><strong><?= $e($doc['title'] ?? $doc['file_name']) ?></strong></td>
                     <td>
-                        <?php if ($doc['control_code']): ?>
-                            <code><?= $e($doc['control_code']) ?></code>
+                        <?php if (!empty($doc['linked_code'])): ?>
+                            <code><?= $e($doc['linked_code']) ?></code>
                         <?php else: ?>
                             <span class="text-muted">-</span>
                         <?php endif; ?>
                     </td>
-                    <td><?= $e(strtoupper($doc['file_type'])) ?></td>
+                    <td><?= $doc['mime_type'] ? $e(strtoupper(pathinfo($doc['file_name'], PATHINFO_EXTENSION))) : 'Unknown' ?></td>
                     <td><?= number_format($doc['file_size'] / 1024, 1) ?> KB</td>
-                    <td><?= $e($doc['uploaded_by_name']) ?></td>
-                    <td><?= date('M d, Y', strtotime($doc['uploaded_at'])) ?></td>
+                    <td><?= $e($doc['uploaded_by_name'] ?? 'Unknown') ?></td>
+                    <td><?= date('M d, Y', strtotime($doc['created_at'])) ?></td>
                     <td>
                         <a href="<?= $url('documents/' . $doc['id'] . '/download') ?>" class="btn btn-sm btn-primary">Download</a>
                         <form action="<?= $url('documents/' . $doc['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Delete this document?');">

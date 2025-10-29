@@ -4,33 +4,39 @@
  * Run this to see what columns exist in the assessments and documents tables
  */
 
-require_once __DIR__ . '/app/Core/Database.php';
-require_once __DIR__ . '/app/Core/Config.php';
-
-use App\Core\Database;
-use App\Core\Config;
-
-$config = Config::get('database');
-$db = new Database($config);
-
-echo "=== ASSESSMENTS TABLE COLUMNS ===\n";
-try {
-    $columns = $db->fetchAll("DESCRIBE assessments");
-    foreach ($columns as $col) {
-        echo "- {$col['Field']} ({$col['Type']}) " .
-             ($col['Null'] === 'YES' ? 'NULL' : 'NOT NULL') . "\n";
-    }
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+// Load config directly
+$configFile = __DIR__ . '/config/database.php';
+if (!file_exists($configFile)) {
+    die("Config file not found: $configFile\n");
 }
+$config = require $configFile;
 
-echo "\n=== DOCUMENTS TABLE COLUMNS ===\n";
+// Connect directly with PDO
 try {
-    $columns = $db->fetchAll("DESCRIBE documents");
+    $dsn = "mysql:host={$config['host']};dbname={$config['database']};charset=utf8mb4";
+    $pdo = new PDO($dsn, $config['username'], $config['password'], [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]);
+
+    echo "=== ASSESSMENTS TABLE COLUMNS ===\n";
+    $stmt = $pdo->query("DESCRIBE assessments");
+    $columns = $stmt->fetchAll();
     foreach ($columns as $col) {
         echo "- {$col['Field']} ({$col['Type']}) " .
              ($col['Null'] === 'YES' ? 'NULL' : 'NOT NULL') . "\n";
     }
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+
+    echo "\n=== DOCUMENTS TABLE COLUMNS ===\n";
+    $stmt = $pdo->query("DESCRIBE documents");
+    $columns = $stmt->fetchAll();
+    foreach ($columns as $col) {
+        echo "- {$col['Field']} ({$col['Type']}) " .
+             ($col['Null'] === 'YES' ? 'NULL' : 'NOT NULL') . "\n";
+    }
+
+    echo "\nDone!\n";
+
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage() . "\n");
 }

@@ -135,25 +135,24 @@ class AssessmentController
         ]);
 
         // Initialize findings for controls in the selected framework
-        // For CMMC, filter by maturity level (e.g., ML2 only includes levels 1 and 2)
-        // Note: CMMC ML2 aligns with NIST 800-171, so include those controls too
+        // For CMMC, filter by maturity level
+        // Note: CMMC ML2 aligns with NIST 800-171 (use NIST controls for ML2)
         if ($framework === 'CMMC' && $targetLevel) {
             if ($targetLevel == 2) {
-                // CMMC ML2 = NIST 800-171 (110 controls)
-                $controls = $this->db->fetchAll(
-                    "SELECT DISTINCT code, framework FROM controls
-                     WHERE (framework = 'CMMC' AND (ml_level IS NULL OR ml_level <= ?))
-                     OR framework = 'NIST800171'
-                     ORDER BY code",
-                    [$targetLevel]
-                );
-            } else {
-                // Other CMMC levels
+                // CMMC ML2 aligns with NIST 800-171, use those 110 controls
                 $controls = $this->db->fetchAll(
                     "SELECT code, framework FROM controls
-                     WHERE framework = ?
-                     AND (ml_level IS NULL OR ml_level <= ?)",
-                    [$framework, $targetLevel]
+                     WHERE framework = 'NIST800171'
+                     ORDER BY code"
+                );
+            } else {
+                // Other CMMC levels (ML1, ML3) use CMMC controls filtered by level
+                $controls = $this->db->fetchAll(
+                    "SELECT code, framework FROM controls
+                     WHERE framework = 'CMMC'
+                     AND (ml_level IS NULL OR ml_level <= ?)
+                     ORDER BY code",
+                    [$targetLevel]
                 );
             }
         } else {

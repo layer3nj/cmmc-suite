@@ -110,8 +110,15 @@ ob_start();
         <tbody>
             <?php foreach ($recent_assessments as $assessment): ?>
             <tr>
-                <td><?= $e($assessment['name']) ?></td>
-                <td><span class="badge"><?= $e($assessment['framework']) ?></span></td>
+                <td>
+                    <?php
+                    $framework = $assessment['framework'] ?? 'Assessment';
+                    $level = $assessment['target_level'] ? " ML{$assessment['target_level']}" : '';
+                    $type = $assessment['assessment_type'] ?? 'Assessment';
+                    echo $e("{$framework}{$level} {$type}");
+                    ?>
+                </td>
+                <td><span class="badge"><?= $e($assessment['framework'] ?? 'N/A') ?></span></td>
                 <td>
                     <?php if ($assessment['status'] === 'published'): ?>
                         <span class="badge badge-success">Published</span>

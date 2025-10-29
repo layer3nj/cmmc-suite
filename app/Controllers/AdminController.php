@@ -299,6 +299,9 @@ class AdminController
 
         AuditLogger::log('update_settings', 'settings', null, $savedSettings, $request->ip());
 
+        // Clear settings cache so changes take effect immediately
+        \App\Services\SettingsService::clearCache();
+
         Session::flash('success', 'Settings updated successfully.');
         return Response::redirect($request->baseUrl() . '/admin/settings');
     }

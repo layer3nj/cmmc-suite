@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page_title) ? $e($page_title) . ' - ' : '' ?>CMMC Compliance Suite</title>
+    <title><?= isset($page_title) ? $e($page_title) . ' - ' : '' ?><?= $e($app_name ?? 'CMMC Compliance Suite') ?></title>
     <link rel="stylesheet" href="<?= $asset('css/app.css') ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/app.css') ?>">
+    <?php if (!empty($primary_color) || !empty($secondary_color)): ?>
+    <style>
+        :root {
+            <?php if (!empty($primary_color)): ?>
+            --primary-color: <?= $e($primary_color) ?>;
+            <?php endif; ?>
+            <?php if (!empty($secondary_color)): ?>
+            --secondary-color: <?= $e($secondary_color) ?>;
+            <?php endif; ?>
+        }
+    </style>
+    <?php endif; ?>
     <?= isset($extra_css) ? $extra_css : '' ?>
 </head>
 <body>
@@ -12,7 +24,12 @@
         <!-- Top Navigation -->
         <nav class="top-nav">
             <div class="nav-brand">
-                <a href="<?= $url('/') ?>">CMMC Compliance Suite</a>
+                <a href="<?= $url('/') ?>">
+                    <?php if (!empty($app_logo)): ?>
+                        <img src="<?= $url($app_logo) ?>" alt="<?= $e($app_name ?? 'CMMC Compliance Suite') ?>" style="height: 30px; vertical-align: middle; margin-right: 8px;">
+                    <?php endif; ?>
+                    <?= $e($app_name ?? 'CMMC Compliance Suite') ?>
+                </a>
             </div>
 
             <div class="nav-center">

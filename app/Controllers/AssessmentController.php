@@ -136,17 +136,30 @@ class AssessmentController
 
         // Initialize findings for controls in the selected framework
         // For CMMC, filter by maturity level (e.g., ML2 only includes levels 1 and 2)
+        // Note: CMMC ML2 aligns with NIST 800-171, so include those controls too
         if ($framework === 'CMMC' && $targetLevel) {
-            $controls = $this->db->fetchAll(
-                "SELECT code FROM controls
-                 WHERE framework = ?
-                 AND (ml_level IS NULL OR ml_level <= ?)",
-                [$framework, $targetLevel]
-            );
+            if ($targetLevel == 2) {
+                // CMMC ML2 = NIST 800-171 (110 controls)
+                $controls = $this->db->fetchAll(
+                    "SELECT DISTINCT code, framework FROM controls
+                     WHERE (framework = 'CMMC' AND (ml_level IS NULL OR ml_level <= ?))
+                     OR framework = 'NIST800171'
+                     ORDER BY code",
+                    [$targetLevel]
+                );
+            } else {
+                // Other CMMC levels
+                $controls = $this->db->fetchAll(
+                    "SELECT code, framework FROM controls
+                     WHERE framework = ?
+                     AND (ml_level IS NULL OR ml_level <= ?)",
+                    [$framework, $targetLevel]
+                );
+            }
         } else {
             // For other frameworks, include all controls
             $controls = $this->db->fetchAll(
-                "SELECT code FROM controls WHERE framework = ?",
+                "SELECT code, framework FROM controls WHERE framework = ?",
                 [$framework]
             );
         }
@@ -154,7 +167,7 @@ class AssessmentController
         foreach ($controls as $control) {
             $this->db->insert('control_findings', [
                 'assessment_id' => $assessmentId,
-                'control_framework' => $framework,
+                'control_framework' => $control['framework'] ?? $framework,
                 'control_code' => $control['code'],
                 'status' => 'not_met', // Default status
                 'created_at' => date('Y-m-d H:i:s'),
@@ -240,9 +253,16 @@ class AssessmentController
         }
 
         // Update findings (bulk update via JSON)
-        $findings = json_decode($request->post('findings'), true);
+        $findingsData = $request->post('findings');
 
-        if (!$findings) {
+        // Check if findings is already an array (parsed JSON) or needs to be decoded
+        if (is_string($findingsData)) {
+            $findings = json_decode($findingsData, true);
+        } else {
+            $findings = $findingsData;
+        }
+
+        if (!$findings || !is_array($findings)) {
             return Response::json(['success' => false, 'message' => 'Invalid findings data']);
         }
 

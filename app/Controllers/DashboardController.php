@@ -74,8 +74,8 @@ class DashboardController
 
         if (!$assessment) {
             return [
-                'current_sprs' => 110,
-                'projected_sprs' => 110,
+                'current_sprs' => -203,
+                'projected_sprs' => -203,
                 'ml1_percent' => 0,
                 'ml2_percent' => 0,
                 'ml3_percent' => 0,

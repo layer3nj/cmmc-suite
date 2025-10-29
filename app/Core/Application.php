@@ -31,6 +31,15 @@ class Application
         if ($isInstalled) {
             try {
                 $this->db = new Database($this->config);
+
+                // Load and share settings globally with all views
+                $settingsService = new \App\Services\SettingsService($this->db);
+                $settings = $settingsService->getAll();
+                View::share('app_settings', $settings);
+                View::share('app_name', $settings['site_name'] ?? 'CMMC Compliance Suite');
+                View::share('app_logo', $settings['logo_path'] ?? null);
+                View::share('primary_color', $settings['primary_color'] ?? '#667eea');
+                View::share('secondary_color', $settings['secondary_color'] ?? '#764ba2');
             } catch (\Exception $e) {
                 error_log('Database connection failed: ' . $e->getMessage());
             }

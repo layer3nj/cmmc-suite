@@ -82,31 +82,38 @@ class SprsScoreCalculator
         $projectedDeductions = 0;
         $breakdown = [];
 
-        foreach ($findings as $finding) {
-            $status = $finding['status'];
-            $deduction = self::DEDUCTIONS[$status] ?? 0;
+        // If no findings exist, assume all 110 practices are "not met"
+        // This results in the minimum score of -203
+        if (empty($findings)) {
+            $currentScore = self::MINIMUM_SCORE;
+            $projectedScore = self::MINIMUM_SCORE;
+        } else {
+            foreach ($findings as $finding) {
+                $status = $finding['status'];
+                $deduction = self::DEDUCTIONS[$status] ?? 0;
 
-            $currentDeductions += $deduction;
+                $currentDeductions += $deduction;
 
-            // For projected score, assume partially_met can become met
-            // and not_met stays the same (unless there's an open POA&M)
-            if ($status === 'partially_met') {
-                $projectedDeductions += 0; // Assume will be fixed
-            } else {
-                $projectedDeductions += $deduction;
+                // For projected score, assume partially_met can become met
+                // and not_met stays the same (unless there's an open POA&M)
+                if ($status === 'partially_met') {
+                    $projectedDeductions += 0; // Assume will be fixed
+                } else {
+                    $projectedDeductions += $deduction;
+                }
+
+                if ($deduction > 0) {
+                    $breakdown[] = [
+                        'control_code' => $finding['control_code'],
+                        'status' => $status,
+                        'deduction' => $deduction,
+                    ];
+                }
             }
 
-            if ($deduction > 0) {
-                $breakdown[] = [
-                    'control_code' => $finding['control_code'],
-                    'status' => $status,
-                    'deduction' => $deduction,
-                ];
-            }
+            $currentScore = max(self::STARTING_SCORE - $currentDeductions, self::MINIMUM_SCORE);
+            $projectedScore = max(self::STARTING_SCORE - $projectedDeductions, self::MINIMUM_SCORE);
         }
-
-        $currentScore = max(self::STARTING_SCORE - $currentDeductions, self::MINIMUM_SCORE);
-        $projectedScore = max(self::STARTING_SCORE - $projectedDeductions, self::MINIMUM_SCORE);
 
         return [
             'starting_score' => self::STARTING_SCORE,

@@ -68,6 +68,36 @@ ob_start();
 
 <div class="card" style="margin-top: 20px;">
     <div class="card-header">
+        <h3>Seed Framework Controls</h3>
+    </div>
+
+    <form action="<?= $url('admin/import') ?>" method="POST" class="form-section">
+        <?= $csrf() ?>
+        <input type="hidden" name="import_type" value="controls">
+        <input type="hidden" name="source" value="seed">
+
+        <div class="form-group">
+            <p><strong>Load all compliance framework controls into the database:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 25px;">
+                <li>CMMC 2.0 (~110 controls)</li>
+                <li>NIST SP 800-171 Rev 2 (~110 controls)</li>
+                <li>DISA STIG (~50 controls)</li>
+                <li>HIPAA Security Rule (~52 controls)</li>
+                <li>FTC Safeguards Rule (~15 controls)</li>
+                <li>PCI-DSS v4.0 (~52 key controls)</li>
+                <li>SOC 2 Trust Services (~45 controls)</li>
+                <li>ISO/IEC 27001:2022 (~50 controls)</li>
+            </ul>
+            <p><strong>Total: ~484 controls across all frameworks</strong></p>
+            <p><strong>Note:</strong> This is safe to run multiple times. Existing controls will not be duplicated.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Load all framework controls? This may take a moment.')">Seed Database with All Controls</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
         <h3>Database Migrations</h3>
     </div>
 

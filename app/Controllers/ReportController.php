@@ -26,7 +26,12 @@ class ReportController
         $authCheck = AuthMiddleware::handle($request);
         if ($authCheck) return $authCheck;
 
-        $content = View::render('reports/index');
+        Session::start();
+        $currentCustomer = Session::get('current_customer_name');
+
+        $content = View::render('reports/index', [
+            'current_customer' => $currentCustomer,
+        ]);
         return new Response($content);
     }
 

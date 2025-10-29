@@ -68,6 +68,23 @@ ob_start();
 
 <div class="card" style="margin-top: 20px;">
     <div class="card-header">
+        <h3>Database Migrations</h3>
+    </div>
+
+    <form action="<?= $url('admin/run-migrations') ?>" method="POST" class="form-section">
+        <?= $csrf() ?>
+
+        <div class="form-group">
+            <p>Run pending database migrations to update the schema with new features and improvements.</p>
+            <p><strong>Note:</strong> This is safe to run multiple times. Already-applied migrations will be skipped automatically.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Run all pending database migrations?')">Run Migrations</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
         <h3>Import Customers</h3>
     </div>
 

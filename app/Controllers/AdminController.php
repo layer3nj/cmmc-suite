@@ -452,4 +452,58 @@ class AdminController
         Session::flash('success', "Successfully imported {$imported} customers.");
         AuditLogger::log('import', 'customers', null, ['count' => $imported], $request->ip());
     }
+
+    public function runMigrations(Request $request): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/import');
+        }
+
+        try {
+            $migrationsDir = BASE_PATH . '/database/migrations';
+            $migrationFiles = glob($migrationsDir . '/*.php');
+            sort($migrationFiles);
+
+            $driver = $this->db->getDriver();
+            $migrationsRun = 0;
+
+            foreach ($migrationFiles as $file) {
+                $migration = require $file;
+
+                if (isset($migration[$driver])) {
+                    try {
+                        $this->db->query($migration[$driver]);
+                        $migrationsRun++;
+                    } catch (\PDOException $e) {
+                        // Skip if migration already applied (table/column exists)
+                        if (strpos($e->getMessage(), 'already exists') !== false ||
+                            strpos($e->getMessage(), 'Duplicate column') !== false) {
+                            continue;
+                        }
+                        throw $e;
+                    }
+                }
+            }
+
+            if ($migrationsRun > 0) {
+                Session::flash('success', "Successfully ran {$migrationsRun} database migration(s).");
+                AuditLogger::log('run_migrations', 'database', null, ['count' => $migrationsRun], $request->ip());
+            } else {
+                Session::flash('info', 'All migrations are already up to date.');
+            }
+        } catch (\Exception $e) {
+            Session::flash('error', 'Migration failed: ' . $e->getMessage());
+        }
+
+        return Response::redirect($request->baseUrl() . '/admin/import');
+    }
 }

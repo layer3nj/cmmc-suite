@@ -30,6 +30,7 @@ class PoamController
 
         Session::start();
         $customerId = Session::get('current_customer_id');
+        $currentCustomer = Session::get('current_customer_name');
 
         if (!$customerId) {
             Session::flash('error', 'Please select a customer first.');
@@ -81,6 +82,7 @@ class PoamController
                 'status' => $status,
                 'framework' => $framework,
             ],
+            'current_customer' => $currentCustomer,
         ]);
 
         return new Response($content);

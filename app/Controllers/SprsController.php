@@ -29,6 +29,7 @@ class SprsController
 
         Session::start();
         $customerId = Session::get('current_customer_id');
+        $currentCustomer = Session::get('current_customer_name');
 
         if (!$customerId) {
             Session::flash('error', 'Please select a customer first.');
@@ -56,6 +57,7 @@ class SprsController
             'assessment' => $assessment,
             'scores' => $scores,
             'breakdown' => $breakdown,
+            'current_customer' => $currentCustomer,
         ]);
 
         return new Response($content);

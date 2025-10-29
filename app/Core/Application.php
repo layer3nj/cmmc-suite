@@ -151,6 +151,7 @@ class Application
             $this->router->get('/admin/audit-log', 'App\Controllers\AdminController@auditLog');
             $this->router->get('/admin/import', 'App\Controllers\AdminController@showImport');
             $this->router->post('/admin/import', 'App\Controllers\AdminController@import');
+            $this->router->post('/admin/run-migrations', 'App\Controllers\AdminController@runMigrations');
         }
     }
 

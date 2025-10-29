@@ -34,15 +34,25 @@ class SprsScoreCalculator
 
     /**
      * Calculate SPRS scores for an assessment
+     * Supports both NIST 800-171 and CMMC frameworks
      */
     public function calculate(int $assessmentId): array
     {
-        // Get all NIST 800-171 findings for this assessment
+        // Get the assessment framework
+        $assessment = $this->db->fetchOne(
+            "SELECT framework FROM assessments WHERE id = ?",
+            [$assessmentId]
+        );
+
+        $framework = $assessment['framework'] ?? 'NIST800171';
+
+        // Get all relevant findings for this assessment
+        // Support both NIST800171 and CMMC (since CMMC L2 = NIST 800-171)
         $findings = $this->db->fetchAll(
             "SELECT control_code, status
              FROM control_findings
              WHERE assessment_id = ?
-             AND control_framework = 'NIST800171'",
+             AND control_framework IN ('NIST800171', 'CMMC')",
             [$assessmentId]
         );
 
@@ -118,7 +128,7 @@ class SprsScoreCalculator
                 "SELECT control_code, status
                  FROM control_findings
                  WHERE assessment_id = ?
-                 AND control_framework = 'NIST800171'
+                 AND control_framework IN ('NIST800171', 'CMMC')
                  AND control_code LIKE ?",
                 [$assessmentId, $prefix . '%']
             );

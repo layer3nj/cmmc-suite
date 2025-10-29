@@ -36,10 +36,12 @@ class SprsController
             return Response::redirect($request->baseUrl() . '/customers');
         }
 
-        // Get latest published assessment
+        // Get latest published NIST 800-171 or CMMC assessment (CMMC L2 = NIST 800-171)
         $assessment = $this->db->fetchOne(
             "SELECT * FROM assessments
-             WHERE customer_id = ? AND status = 'published'
+             WHERE customer_id = ?
+             AND status = 'published'
+             AND framework IN ('NIST800171', 'CMMC')
              ORDER BY assessed_at DESC LIMIT 1",
             [$customerId]
         );
@@ -73,7 +75,9 @@ class SprsController
 
         $assessment = $this->db->fetchOne(
             "SELECT * FROM assessments
-             WHERE customer_id = ? AND status = 'published'
+             WHERE customer_id = ?
+             AND status = 'published'
+             AND framework IN ('NIST800171', 'CMMC')
              ORDER BY assessed_at DESC LIMIT 1",
             [$customerId]
         );

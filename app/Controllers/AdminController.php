@@ -383,6 +383,7 @@ class AdminController
             BASE_PATH . '/database/seeds/003_seed_stig_controls.php',
             BASE_PATH . '/database/seeds/005_expand_control_coverage.php',
             BASE_PATH . '/database/seeds/006_additional_frameworks.php',
+            BASE_PATH . '/database/seeds/007_enhanced_frameworks.php',
         ];
 
         $totalInserted = 0;

@@ -504,7 +504,7 @@ class AdminController
                         try {
                             $this->db->query($statement);
                             $statementsRun++;
-                        } catch (\PDOException $e) {
+                        } catch (\Exception $e) {
                             $errorMsg = $e->getMessage();
 
                             // Skip if migration already applied (table/column/index exists)

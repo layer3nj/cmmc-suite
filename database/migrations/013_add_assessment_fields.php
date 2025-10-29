@@ -12,17 +12,15 @@
 
 return [
     'mysql' => "
-        ALTER TABLE assessments
-        ADD COLUMN framework VARCHAR(50) NULL AFTER customer_id,
-        ADD COLUMN assessment_type VARCHAR(50) NULL AFTER framework,
-        ADD COLUMN scope TEXT NULL AFTER assessment_type,
-        ADD COLUMN target_level INT NULL AFTER scope;
+        ALTER TABLE assessments ADD COLUMN framework VARCHAR(50) NULL AFTER customer_id;
+        ALTER TABLE assessments ADD COLUMN assessment_type VARCHAR(50) NULL AFTER framework;
+        ALTER TABLE assessments ADD COLUMN scope TEXT NULL AFTER assessment_type;
+        ALTER TABLE assessments ADD COLUMN target_level INT NULL AFTER scope;
     ",
     'pgsql' => "
-        ALTER TABLE assessments
-        ADD COLUMN framework VARCHAR(50) NULL,
-        ADD COLUMN assessment_type VARCHAR(50) NULL,
-        ADD COLUMN scope TEXT NULL,
-        ADD COLUMN target_level INT NULL;
+        ALTER TABLE assessments ADD COLUMN framework VARCHAR(50) NULL;
+        ALTER TABLE assessments ADD COLUMN assessment_type VARCHAR(50) NULL;
+        ALTER TABLE assessments ADD COLUMN scope TEXT NULL;
+        ALTER TABLE assessments ADD COLUMN target_level INT NULL;
     "
 ];

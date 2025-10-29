@@ -482,23 +482,44 @@ class AdminController
                 $migration = require $file;
 
                 if (isset($migration[$driver])) {
-                    try {
-                        $this->db->query($migration[$driver]);
-                        $migrationsRun++;
-                    } catch (\PDOException $e) {
-                        $errorMsg = $e->getMessage();
+                    // Split migration SQL into individual statements
+                    $sql = $migration[$driver];
+                    $statements = array_filter(
+                        array_map('trim', explode(';', $sql)),
+                        function($stmt) { return !empty($stmt); }
+                    );
 
-                        // Skip if migration already applied (table/column/index exists)
-                        if (stripos($errorMsg, 'already exists') !== false ||
-                            stripos($errorMsg, 'Duplicate column') !== false ||
-                            stripos($errorMsg, 'Duplicate key') !== false ||
-                            stripos($errorMsg, 'Multiple primary key') !== false) {
-                            $migrationsSkipped++;
-                            continue;
+                    $statementsRun = 0;
+                    $statementsSkipped = 0;
+
+                    foreach ($statements as $statement) {
+                        try {
+                            $this->db->query($statement);
+                            $statementsRun++;
+                        } catch (\PDOException $e) {
+                            $errorMsg = $e->getMessage();
+
+                            // Skip if migration already applied (table/column/index exists)
+                            if (stripos($errorMsg, 'already exists') !== false ||
+                                stripos($errorMsg, 'Duplicate column') !== false ||
+                                stripos($errorMsg, 'Duplicate key') !== false ||
+                                stripos($errorMsg, 'Multiple primary key') !== false) {
+                                $statementsSkipped++;
+                                continue;
+                            }
+
+                            // If it's a real error, throw it
+                            throw new \Exception("Migration {$migrationName} failed: " . $errorMsg);
                         }
+                    }
 
-                        // If it's a real error, throw it
-                        throw new \Exception("Migration {$migrationName} failed: " . $errorMsg);
+                    // Count migration as run if at least one statement succeeded
+                    if ($statementsRun > 0) {
+                        $migrationsRun++;
+                    }
+                    // Count as skipped only if all statements were skipped
+                    if ($statementsSkipped > 0 && $statementsRun === 0) {
+                        $migrationsSkipped++;
                     }
                 }
             }

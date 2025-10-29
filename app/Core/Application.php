@@ -90,6 +90,7 @@ class Application
 
             // Controls
             $this->router->get('/controls', 'App\Controllers\ControlController@index');
+            $this->router->get('/controls/{framework}/export-pdf', 'App\Controllers\ControlController@exportPdf');
             $this->router->get('/controls/{framework}', 'App\Controllers\ControlController@byFramework');
             $this->router->get('/controls/{framework}/{code}', 'App\Controllers\ControlController@show');
             $this->router->post('/controls/{framework}/{code}/update', 'App\Controllers\ControlController@update');

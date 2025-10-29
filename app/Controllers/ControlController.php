@@ -40,7 +40,9 @@ class ControlController
 
         $framework = strtoupper($framework);
 
-        if (!in_array($framework, ['CMMC', 'NIST800171', 'STIG'])) {
+        // Support all compliance frameworks
+        $validFrameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        if (!in_array($framework, $validFrameworks)) {
             return new Response('Invalid framework', 404);
         }
 
@@ -208,5 +210,59 @@ class ControlController
              LIMIT 1",
             [$customerId, $framework, $code]
         );
+    }
+
+    public function exportPdf(Request $request, string $framework): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $framework = strtoupper($framework);
+
+        // Support all compliance frameworks
+        $validFrameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        if (!in_array($framework, $validFrameworks)) {
+            return new Response('Invalid framework', 404);
+        }
+
+        // Get all controls for this framework
+        $controls = $this->db->fetchAll(
+            "SELECT * FROM controls WHERE framework = ? ORDER BY code ASC",
+            [$framework]
+        );
+
+        // Get framework display name
+        $frameworkNames = [
+            'CMMC' => 'CMMC 2.0 - Cybersecurity Maturity Model Certification',
+            'NIST800171' => 'NIST SP 800-171 Rev 2',
+            'STIG' => 'DISA STIG - Security Technical Implementation Guide',
+            'HIPAA' => 'HIPAA Security Rule',
+            'FTC-SAFEGUARDS' => 'FTC Safeguards Rule',
+            'PCI-DSS' => 'PCI-DSS v4.0 - Payment Card Industry Data Security Standard',
+            'SOC2' => 'SOC 2 - Trust Services Criteria',
+            'ISO27001' => 'ISO/IEC 27001:2022 - Information Security Management',
+        ];
+
+        $frameworkName = $frameworkNames[$framework] ?? $framework;
+
+        // Render HTML content for PDF
+        $htmlContent = View::render('controls/pdf_export', [
+            'framework' => $framework,
+            'framework_name' => $frameworkName,
+            'controls' => $controls,
+            'generated_date' => date('F j, Y'),
+            'total_controls' => count($controls),
+        ]);
+
+        // Set headers for PDF download
+        $filename = strtolower($framework) . '_controls_' . date('Y-m-d') . '.pdf';
+
+        // Use browser's built-in print-to-PDF functionality
+        // Set content type to HTML and include print stylesheet
+        $response = new Response($htmlContent);
+        $response->setHeader('Content-Type', 'text/html; charset=utf-8');
+        $response->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+
+        return $response;
     }
 }

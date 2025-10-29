@@ -113,6 +113,13 @@ class AssessmentController
         $scope = trim($request->post('scope'));
         $targetLevel = $request->post('target_level');
 
+        // Convert empty string to null for integer fields
+        if ($targetLevel === '' || $targetLevel === null) {
+            $targetLevel = null;
+        } else {
+            $targetLevel = (int)$targetLevel;
+        }
+
         // Create assessment
         $assessmentId = $this->db->insert('assessments', [
             'customer_id' => $customerId,

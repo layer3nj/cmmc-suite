@@ -484,9 +484,17 @@ class AdminController
                 if (isset($migration[$driver])) {
                     // Split migration SQL into individual statements
                     $sql = $migration[$driver];
+
+                    // Remove SQL comments (-- style)
+                    $sql = preg_replace('/--[^\n]*\n/', "\n", $sql);
+
+                    // Split on semicolons and filter out empty/whitespace statements
                     $statements = array_filter(
                         array_map('trim', explode(';', $sql)),
-                        function($stmt) { return !empty($stmt); }
+                        function($stmt) {
+                            // Skip empty statements or statements that are just comments
+                            return !empty($stmt) && !preg_match('/^\s*$/', $stmt);
+                        }
                     );
 
                     $statementsRun = 0;

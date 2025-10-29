@@ -127,11 +127,22 @@ class AssessmentController
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // Initialize findings for all controls in the selected framework
-        $controls = $this->db->fetchAll(
-            "SELECT code FROM controls WHERE framework = ?",
-            [$framework]
-        );
+        // Initialize findings for controls in the selected framework
+        // For CMMC, filter by maturity level (e.g., ML2 only includes levels 1 and 2)
+        if ($framework === 'CMMC' && $targetLevel) {
+            $controls = $this->db->fetchAll(
+                "SELECT code FROM controls
+                 WHERE framework = ?
+                 AND (ml_level IS NULL OR ml_level <= ?)",
+                [$framework, $targetLevel]
+            );
+        } else {
+            // For other frameworks, include all controls
+            $controls = $this->db->fetchAll(
+                "SELECT code FROM controls WHERE framework = ?",
+                [$framework]
+            );
+        }
 
         foreach ($controls as $control) {
             $this->db->insert('control_findings', [

@@ -7,25 +7,46 @@ use App\Core\Database;
 /**
  * SPRS Score Calculator
  *
- * Implements DoD NIST 800-171 Assessment Methodology
- * Starting score: 110 points
- * Deductions based on implementation status
- * Minimum score: -203 points
+ * Implements DoD NIST 800-171 Assessment Methodology (SPRS = Supplier Performance Risk System)
+ *
+ * SCORING METHODOLOGY:
+ * - Starting score: 110 points (maximum possible, all requirements met)
+ * - Minimum score: -203 points (all requirements not met)
+ * - Each of the 110 NIST 800-171 practices is scored individually
+ *
+ * DEDUCTION VALUES:
+ * - Met: 0 points (no deduction)
+ * - Partially Met: -3 points per practice
+ * - Not Met: -5 points per practice
+ * - Not Applicable: 0 points (no deduction)
+ *
+ * CALCULATION:
+ * Final Score = 110 - (sum of all deductions), with a floor of -203
+ *
+ * EXAMPLE:
+ * - 100 practices Met (0 deduction each) = 0 points deducted
+ * - 5 practices Partially Met (3 points each) = -15 points
+ * - 5 practices Not Met (5 points each) = -25 points
+ * Final Score = 110 - 40 = 70 points
+ *
+ * WORST CASE:
+ * - All 110 practices Not Met = 110 × -5 = -550 points of deductions
+ * - But minimum score is capped at -203 points
  */
 class SprsScoreCalculator
 {
     private Database $db;
 
-    // Deduction values per NIST 800-171 practice status
+    // Deduction values per NIST 800-171 practice implementation status
     private const DEDUCTIONS = [
-        'not_met' => 5,           // Fully not implemented: -5 points
+        'met' => 0,               // Fully implemented: 0 points (no deduction)
         'partially_met' => 3,     // Partially implemented: -3 points
-        'not_applicable' => 0,    // N/A: 0 points
-        'met' => 0,               // Fully met: 0 points
+        'not_met' => 5,           // Not implemented: -5 points
+        'not_applicable' => 0,    // N/A: 0 points (no deduction)
     ];
 
-    private const STARTING_SCORE = 110;
-    private const MINIMUM_SCORE = -203;
+    private const STARTING_SCORE = 110;  // Maximum possible score (all practices met)
+    private const MINIMUM_SCORE = -203;  // Minimum possible score (floor)
 
     public function __construct(Database $db)
     {

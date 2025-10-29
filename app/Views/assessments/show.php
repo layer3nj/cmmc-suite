@@ -210,8 +210,8 @@ function publishAssessment() {
 
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
-    csrfInput.name = 'csrf_token';
-    csrfInput.value = '<?= \App\Core\Csrf::generate() ?>';
+    csrfInput.name = '_csrf_token';
+    csrfInput.value = '<?= \App\Core\Csrf::generateToken() ?>';
 
     form.appendChild(csrfInput);
     document.body.appendChild(form);

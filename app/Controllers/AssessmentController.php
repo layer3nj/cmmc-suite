@@ -373,13 +373,16 @@ class AssessmentController
             [$assessmentId]
         );
 
+        $completionPercent = $total > 0 ? round(($met / $total) * 100) : 0;
+
         return [
             'total' => $total,
             'met' => $met,
             'partially_met' => $partiallyMet,
             'not_met' => $notMet,
             'not_applicable' => $notApplicable,
-            'completion_percent' => $total > 0 ? round(($met / $total) * 100) : 0,
+            'completion_percent' => $completionPercent,
+            'percentage' => $completionPercent, // Alias for views
         ];
     }
 }

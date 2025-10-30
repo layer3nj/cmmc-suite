@@ -37,7 +37,7 @@ class SettingsService
 
         // Set defaults
         $defaults = [
-            'site_name' => 'CMMC Compliance Suite',
+            'site_name' => 'Layer3 | Trident Cyber OneComply',
             'primary_color' => '#667eea',
             'secondary_color' => '#764ba2',
             'timezone' => 'UTC',

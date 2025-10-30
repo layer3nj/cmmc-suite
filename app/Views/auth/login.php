@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - CMMC Compliance Suite</title>
+    <title>Login - <?= $e($app_name ?? 'Layer3 | Trident Cyber OneComply') ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, <?= $e($primary_color ?? '#667eea') ?> 0%, <?= $e($secondary_color ?? '#764ba2') ?> 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -27,7 +27,7 @@
         }
 
         .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, <?= $e($primary_color ?? '#667eea') ?> 0%, <?= $e($secondary_color ?? '#764ba2') ?> 100%);
             color: white;
             padding: 40px 30px;
             text-align: center;
@@ -41,6 +41,12 @@
         .login-header p {
             opacity: 0.9;
             font-size: 14px;
+        }
+
+        .login-logo {
+            max-width: 120px;
+            max-height: 80px;
+            margin-bottom: 16px;
         }
 
         .login-body {
@@ -89,7 +95,7 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: <?= $e($primary_color ?? '#667eea') ?>;
         }
 
         .btn {
@@ -104,13 +110,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, <?= $e($primary_color ?? '#667eea') ?> 0%, <?= $e($secondary_color ?? '#764ba2') ?> 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(<?= hexdec(substr($primary_color ?? '#667eea', 1, 2)) ?>, <?= hexdec(substr($primary_color ?? '#667eea', 3, 2)) ?>, <?= hexdec(substr($primary_color ?? '#667eea', 5, 2)) ?>, 0.4);
         }
 
         .btn-secondary {
@@ -158,8 +164,11 @@
 <body>
     <div class="login-container">
         <div class="login-header">
+            <?php if (!empty($app_logo)): ?>
+                <img src="<?= $url($app_logo) ?>" alt="<?= $e($app_name ?? 'Layer3 | Trident Cyber OneComply') ?>" class="login-logo">
+            <?php endif; ?>
             <h1>Welcome Back</h1>
-            <p>CMMC Compliance Suite</p>
+            <p><?= $e($app_name ?? 'Layer3 | Trident Cyber OneComply') ?></p>
         </div>
 
         <div class="login-body">
@@ -202,7 +211,7 @@
         </div>
 
         <div class="footer">
-            &copy; <?= date('Y') ?> CMMC Compliance Suite
+            &copy; <?= date('Y') ?> Layer3 &amp; Trident Cyber. All rights reserved.
         </div>
     </div>
 </body>

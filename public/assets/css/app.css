@@ -915,6 +915,16 @@ pre {
     transition: width 0.5s ease;
 }
 
+/* Footer */
+.app-footer {
+    margin-top: 40px;
+    padding: 20px 0;
+    text-align: center;
+    color: var(--gray);
+    font-size: 12px;
+    border-top: 1px solid var(--gray-light);
+}
+
 /* Utilities */
 .mt-20 { margin-top: 20px; }
 .mb-20 { margin-bottom: 20px; }

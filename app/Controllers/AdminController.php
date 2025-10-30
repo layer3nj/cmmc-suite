@@ -391,19 +391,32 @@ class AdminController
         ];
 
         $totalInserted = 0;
+        $totalUpdated = 0;
         foreach ($seedFiles as $seedFile) {
             if (file_exists($seedFile)) {
                 $seeder = require $seedFile;
                 if (is_callable($seeder)) {
-                    $inserted = $seeder($this->db);
-                    $totalInserted += $inserted;
+                    $result = $seeder($this->db);
+
+                    // Handle both old format (integer) and new format (array)
+                    if (is_array($result)) {
+                        $totalInserted += $result['inserted'] ?? 0;
+                        $totalUpdated += $result['updated'] ?? 0;
+                    } else {
+                        $totalInserted += (int)$result;
+                    }
                 }
             }
         }
 
-        if ($totalInserted > 0) {
-            Session::flash('success', "Successfully imported {$totalInserted} controls across all frameworks.");
-            AuditLogger::log('import', 'controls', null, ['source' => $source, 'count' => $totalInserted], $request->ip());
+        if ($totalInserted > 0 || $totalUpdated > 0) {
+            $message = "Successfully imported {$totalInserted} new control(s)";
+            if ($totalUpdated > 0) {
+                $message .= " and updated {$totalUpdated} existing control(s)";
+            }
+            $message .= " across all frameworks.";
+            Session::flash('success', $message);
+            AuditLogger::log('import', 'controls', null, ['source' => $source, 'inserted' => $totalInserted, 'updated' => $totalUpdated], $request->ip());
         } else {
             Session::flash('info', 'No new controls to import. All controls are already in the database.');
         }

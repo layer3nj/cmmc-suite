@@ -106,6 +106,9 @@ class InstallController
 
     public function database(Request $request): Response
     {
+        // Clean output buffer to prevent any HTML/warnings from being sent
+        if (ob_get_level()) ob_clean();
+
         $driver = $request->post('driver');
         $host = $request->post('host');
         $port = $request->post('port');
@@ -131,8 +134,10 @@ class InstallController
             ]);
         }
 
-        // Save to session temporarily
-        session_start();
+        // Save to session temporarily (suppress any session warnings)
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
         $_SESSION['install_db'] = [
             'driver' => $driver,
             'host' => $host,
@@ -151,7 +156,12 @@ class InstallController
 
     public function migrate(Request $request): Response
     {
-        session_start();
+        // Clean output buffer to prevent any HTML/warnings from being sent
+        if (ob_get_level()) ob_clean();
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
 
         if (!isset($_SESSION['install_db'])) {
             return Response::json([
@@ -192,7 +202,12 @@ class InstallController
 
     public function saml(Request $request): Response
     {
-        session_start();
+        // Clean output buffer to prevent any HTML/warnings from being sent
+        if (ob_get_level()) ob_clean();
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
 
         $enabled = $request->post('saml_enabled') === 'true';
         $entityId = $request->post('entity_id');
@@ -216,7 +231,12 @@ class InstallController
 
     public function admin(Request $request): Response
     {
-        session_start();
+        // Clean output buffer to prevent any HTML/warnings from being sent
+        if (ob_get_level()) ob_clean();
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
 
         if (!isset($_SESSION['install_db'])) {
             return Response::json([
@@ -289,7 +309,12 @@ class InstallController
 
     public function finalize(Request $request): Response
     {
-        session_start();
+        // Clean output buffer to prevent any HTML/warnings from being sent
+        if (ob_get_level()) ob_clean();
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
 
         if (!isset($_SESSION['install_db'])) {
             return Response::json([

@@ -179,7 +179,7 @@ class DashboardController
         }
 
         return $this->db->fetchOne(
-            "SELECT * FROM customers WHERE id = ?",
+            "SELECT * FROM clients WHERE id = ?",
             [$customerId]
         );
     }

@@ -43,7 +43,7 @@ class AdminController
         // Get system stats
         $stats = [
             'total_users' => count($users),
-            'total_customers' => $this->db->fetchColumn("SELECT COUNT(*) FROM customers WHERE active = 1"),
+            'total_customers' => $this->db->fetchColumn("SELECT COUNT(*) FROM clients WHERE active = 1"),
             'total_assessments' => $this->db->fetchColumn("SELECT COUNT(*) FROM assessments"),
             'total_poam' => $this->db->fetchColumn("SELECT COUNT(*) FROM poam_items"),
         ];
@@ -446,12 +446,12 @@ class AdminController
 
             // Check if customer already exists
             $existing = $this->db->fetchOne(
-                "SELECT id FROM customers WHERE name = ?",
+                "SELECT id FROM clients WHERE name = ?",
                 [$data['name']]
             );
 
             if (!$existing) {
-                $this->db->insert('customers', [
+                $this->db->insert('clients', [
                     'name' => $data['name'],
                     'contact_name' => $data['contact_name'] ?? null,
                     'contact_email' => $data['contact_email'] ?? null,

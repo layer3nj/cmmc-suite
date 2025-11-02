@@ -35,13 +35,13 @@
 
             <div class="nav-center">
                 <?php
-                $currentCustomer = \App\Core\Session::get('current_customer_name');
-                if ($currentCustomer):
+                $currentClient = \App\Core\Session::get('current_customer_name'); // Keep session key for backward compatibility
+                if ($currentClient):
                 ?>
                 <div class="customer-selector">
                     <span class="customer-icon">🏢</span>
-                    <span class="customer-name"><?= $e($currentCustomer) ?></span>
-                    <a href="<?= $url('customers') ?>" class="change-customer">Change</a>
+                    <span class="customer-name"><?= $e($currentClient) ?></span>
+                    <a href="<?= $url('clients') ?>" class="change-customer">Change</a>
                 </div>
                 <?php endif; ?>
             </div>
@@ -65,9 +65,9 @@
                         <span class="nav-label">Dashboard</span>
                     </a>
 
-                    <a href="<?= $url('customers') ?>" class="nav-item <?= ($current_page ?? '') === 'customers' ? 'active' : '' ?>">
+                    <a href="<?= $url('clients') ?>" class="nav-item <?= in_array(($current_page ?? ''), ['customers', 'clients']) ? 'active' : '' ?>">
                         <span class="nav-icon">🏢</span>
-                        <span class="nav-label">Customers</span>
+                        <span class="nav-label">Clients</span>
                     </a>
 
                     <a href="<?= $url('controls') ?>" class="nav-item <?= ($current_page ?? '') === 'controls' ? 'active' : '' ?>">

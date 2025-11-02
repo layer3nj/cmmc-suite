@@ -83,19 +83,36 @@ class Application
             $this->router->get('/saml/login', 'App\Controllers\SamlController@login');
             $this->router->get('/saml/metadata', 'App\Controllers\SamlController@metadata');
 
-            // Dashboard
-            $this->router->get('/', 'App\Controllers\DashboardController@index');
-            $this->router->get('/dashboard', 'App\Controllers\DashboardController@index');
+            // Home Dashboard with Quick Links
+            $this->router->get('/', 'App\Controllers\HomeController@index');
+            $this->router->get('/home/links', 'App\Controllers\HomeController@manageLinks');
+            $this->router->post('/home/links/create', 'App\Controllers\HomeController@createLink');
+            $this->router->post('/home/links/{id}/update', 'App\Controllers\HomeController@updateLink');
+            $this->router->post('/home/links/{id}/delete', 'App\Controllers\HomeController@deleteLink');
 
-            // Customers (multi-tenant)
-            $this->router->get('/customers', 'App\Controllers\CustomerController@index');
-            $this->router->get('/customers/create', 'App\Controllers\CustomerController@create');
-            $this->router->post('/customers', 'App\Controllers\CustomerController@store');
-            $this->router->get('/customers/{id}', 'App\Controllers\CustomerController@show');
-            $this->router->get('/customers/{id}/edit', 'App\Controllers\CustomerController@edit');
-            $this->router->post('/customers/{id}', 'App\Controllers\CustomerController@update');
-            $this->router->post('/customers/{id}/delete', 'App\Controllers\CustomerController@delete');
-            $this->router->get('/customers/{id}/select', 'App\Controllers\CustomerController@select');
+            // Compliance Dashboard
+            $this->router->get('/dashboard', 'App\Controllers\DashboardController@index');
+            $this->router->get('/compliance', 'App\Controllers\DashboardController@index');
+
+            // Clients (multi-tenant) - New routes
+            $this->router->get('/clients', 'App\Controllers\ClientController@index');
+            $this->router->get('/clients/create', 'App\Controllers\ClientController@create');
+            $this->router->post('/clients', 'App\Controllers\ClientController@store');
+            $this->router->get('/clients/{id}', 'App\Controllers\ClientController@show');
+            $this->router->get('/clients/{id}/edit', 'App\Controllers\ClientController@edit');
+            $this->router->post('/clients/{id}', 'App\Controllers\ClientController@update');
+            $this->router->post('/clients/{id}/delete', 'App\Controllers\ClientController@delete');
+            $this->router->get('/clients/{id}/select', 'App\Controllers\ClientController@select');
+
+            // Customers (multi-tenant) - Legacy routes (redirect to clients)
+            $this->router->get('/customers', 'App\Controllers\ClientController@index');
+            $this->router->get('/customers/create', 'App\Controllers\ClientController@create');
+            $this->router->post('/customers', 'App\Controllers\ClientController@store');
+            $this->router->get('/customers/{id}', 'App\Controllers\ClientController@show');
+            $this->router->get('/customers/{id}/edit', 'App\Controllers\ClientController@edit');
+            $this->router->post('/customers/{id}', 'App\Controllers\ClientController@update');
+            $this->router->post('/customers/{id}/delete', 'App\Controllers\ClientController@delete');
+            $this->router->get('/customers/{id}/select', 'App\Controllers\ClientController@select');
 
             // Controls
             $this->router->get('/controls', 'App\Controllers\ControlController@index');

@@ -14,33 +14,33 @@ ob_start();
     </div>
 </div>
 
-<?php if (!$current_customer): ?>
+<?php if (!isset($current_customer) || !$current_customer): ?>
     <div class="alert alert-info">
         <span class="alert-icon">ℹ️</span>
-        Please <a href="<?= $url('customers') ?>">select a customer</a> to view POA&M items.
+        Please <a href="<?= $url('clients') ?>">select a client</a> to view POA&M items.
     </div>
-<?php elseif (empty($poam_items)): ?>
+<?php elseif (empty($items)): ?>
     <div class="alert alert-info">
         <span class="alert-icon">ℹ️</span>
-        No POA&M items found. <a href="<?= $url('poam/generate') ?>">Generate from assessment</a> or <a href="<?= $url('poam/create') ?>">create manually</a>.
+        No POA&M items found. <a href="<?= $url('poam/create') ?>">Create your first POA&M item</a>.
     </div>
 <?php else: ?>
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-label">Total Items</div>
-            <div class="stat-value"><?= count($poam_items) ?></div>
+            <div class="stat-value"><?= $stats['total'] ?></div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Open</div>
-            <div class="stat-value text-warning"><?= count(array_filter($poam_items, fn($i) => $i['status'] === 'open')) ?></div>
+            <div class="stat-value text-warning"><?= $stats['open'] ?></div>
         </div>
         <div class="stat-card">
             <div class="stat-label">In Progress</div>
-            <div class="stat-value text-info"><?= count(array_filter($poam_items, fn($i) => $i['status'] === 'in_progress')) ?></div>
+            <div class="stat-value text-info"><?= $stats['in_progress'] ?></div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Completed</div>
-            <div class="stat-value text-success"><?= count(array_filter($poam_items, fn($i) => $i['status'] === 'completed')) ?></div>
+            <div class="stat-value text-success"><?= $stats['closed'] ?></div>
         </div>
     </div>
 
@@ -58,26 +58,32 @@ ob_start();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($poam_items as $item): ?>
+                <?php foreach ($items as $item): ?>
                 <tr>
-                    <td><code><?= $e($item['control_code']) ?></code></td>
-                    <td><?= $e($item['weakness_description']) ?></td>
-                    <td><?= $e(substr($item['corrective_action'], 0, 50)) ?>...</td>
-                    <td><?= $e($item['responsible_party']) ?></td>
+                    <td><code><?= $e($item['control_code'] ?? 'N/A') ?></code></td>
+                    <td><?= $e(substr($item['weakness'] ?? '', 0, 60)) ?><?= strlen($item['weakness'] ?? '') > 60 ? '...' : '' ?></td>
+                    <td><?= $e(substr($item['corrective_action'] ?? '', 0, 50)) ?><?= strlen($item['corrective_action'] ?? '') > 50 ? '...' : '' ?></td>
+                    <td><?= $e($item['responsible_party'] ?? '-') ?></td>
                     <td>
-                        <?php
-                        $target = strtotime($item['planned_completion_date']);
-                        $isOverdue = $target < time() && $item['status'] !== 'completed';
-                        ?>
-                        <span class="<?= $isOverdue ? 'text-danger' : '' ?>">
-                            <?= date('M d, Y', $target) ?>
-                        </span>
+                        <?php if ($item['planned_completion_date']): ?>
+                            <?php
+                            $target = strtotime($item['planned_completion_date']);
+                            $isOverdue = $target < time() && !in_array($item['status'], ['closed', 'completed']);
+                            ?>
+                            <span class="<?= $isOverdue ? 'text-danger' : '' ?>">
+                                <?= date('M d, Y', $target) ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="text-muted">Not set</span>
+                        <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($item['status'] === 'completed'): ?>
-                            <span class="badge badge-success">Completed</span>
+                        <?php if ($item['status'] === 'closed'): ?>
+                            <span class="badge badge-success">Closed</span>
                         <?php elseif ($item['status'] === 'in_progress'): ?>
                             <span class="badge badge-info">In Progress</span>
+                        <?php elseif ($item['status'] === 'deferred'): ?>
+                            <span class="badge badge-secondary">Deferred</span>
                         <?php else: ?>
                             <span class="badge badge-warning">Open</span>
                         <?php endif; ?>

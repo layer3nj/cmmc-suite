@@ -119,14 +119,14 @@
             <!-- Main Content Area -->
             <main class="main-content">
                 <?php if ($success = $success()): ?>
-                    <div class="alert alert-success">
+                    <div class="alert alert-success alert-flash">
                         <span class="alert-icon">✓</span>
                         <?= $e($success) ?>
                     </div>
                 <?php endif; ?>
 
                 <?php if ($errorMessage = $error()): ?>
-                    <div class="alert alert-error">
+                    <div class="alert alert-error alert-flash">
                         <span class="alert-icon">✗</span>
                         <?= $e($errorMessage) ?>
                     </div>

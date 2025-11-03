@@ -2,10 +2,11 @@
  * CMMC Compliance Suite - Main JavaScript
  */
 
-// Auto-hide alerts after 5 seconds
+// Auto-hide flash messages (success/error from forms) after 5 seconds
+// Static alerts (info, warnings) stay visible
 document.addEventListener('DOMContentLoaded', function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
+    const flashAlerts = document.querySelectorAll('.alert-flash');
+    flashAlerts.forEach(alert => {
         setTimeout(() => {
             alert.style.transition = 'opacity 0.5s';
             alert.style.opacity = '0';

@@ -53,9 +53,34 @@ ob_start();
                     <small>Minimum 8 characters</small>
                 </div>
             </div>
+
+            <div class="form-group">
+                <label><strong>Client Access</strong></label>
+                <small style="display: block; margin-bottom: 10px;">Select which clients this user can access and their permission level. Leave all unchecked for access to all clients (based on role).</small>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 15px; border-radius: 4px; background: #f9fafb;">
+                    <?php if (empty($clients)): ?>
+                        <p style="color: #888;">No clients available yet. Create clients first.</p>
+                    <?php else: ?>
+                        <?php foreach ($clients as $client): ?>
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px;">
+                            <label style="flex: 1; margin: 0; display: flex; align-items: center;">
+                                <input type="checkbox" class="client-checkbox" value="<?= $client['id'] ?>" style="margin-right: 10px;">
+                                <strong><?= $e($client['name']) ?></strong>
+                            </label>
+                            <select class="client-access-level form-control" data-client-id="<?= $client['id'] ?>" disabled style="width: 150px;">
+                                <option value="read-only">Read-Only</option>
+                                <option value="read-write">Read-Write</option>
+                            </select>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+                <input type="hidden" name="client_access" id="client-access-data">
+            </div>
+
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('user-form').style.display='none'">Cancel</button>
-                <button type="submit" class="btn btn-primary">Create User</button>
+                <button type="submit" class="btn btn-primary" onclick="buildClientAccessData()">Create User</button>
             </div>
         </form>
     </div>
@@ -66,6 +91,7 @@ ob_start();
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Client Access</th>
                 <th>Last Login</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -85,6 +111,20 @@ ob_start();
                         <span class="badge badge-info">Contributor</span>
                     <?php else: ?>
                         <span class="badge badge-secondary">Viewer</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if (empty($user['client_access'])): ?>
+                        <span style="color: #888; font-size: 12px;">All clients</span>
+                    <?php else: ?>
+                        <div style="max-width: 300px;">
+                            <?php foreach ($user['client_access'] as $access): ?>
+                                <span class="badge badge-info" style="margin: 2px; font-size: 11px;">
+                                    <?= $e($access['client_name']) ?>
+                                    <small>(<?= $access['access_level'] === 'read-write' ? 'RW' : 'RO' ?>)</small>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
                     <?php endif; ?>
                 </td>
                 <td><?= $user['last_login_at'] ? date('M d, Y H:i', strtotime($user['last_login_at'])) : 'Never' ?></td>
@@ -140,6 +180,48 @@ ob_start();
         </tr>
     </table>
 </div>
+
+<script>
+// Handle client checkbox changes
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.client-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const clientId = this.value;
+            const accessLevelSelect = document.querySelector(`.client-access-level[data-client-id="${clientId}"]`);
+
+            if (this.checked) {
+                accessLevelSelect.disabled = false;
+            } else {
+                accessLevelSelect.disabled = true;
+            }
+        });
+    });
+});
+
+// Build client access JSON data before form submission
+function buildClientAccessData() {
+    const checkboxes = document.querySelectorAll('.client-checkbox:checked');
+    const clientAccessData = [];
+
+    checkboxes.forEach(checkbox => {
+        const clientId = checkbox.value;
+        const accessLevelSelect = document.querySelector(`.client-access-level[data-client-id="${clientId}"]`);
+        const accessLevel = accessLevelSelect.value;
+
+        clientAccessData.push({
+            client_id: parseInt(clientId),
+            access_level: accessLevel
+        });
+    });
+
+    // Store as JSON in hidden field
+    document.getElementById('client-access-data').value = JSON.stringify(clientAccessData);
+
+    return true; // Allow form submission to continue
+}
+</script>
 
 <?php
 $content = ob_get_clean();

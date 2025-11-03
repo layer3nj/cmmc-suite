@@ -40,6 +40,23 @@ class AdminController
         // Get all users
         $users = $this->db->fetchAll("SELECT * FROM users ORDER BY created_at DESC");
 
+        // Get all clients for the access assignment UI
+        $clients = $this->db->fetchAll(
+            "SELECT id, name FROM clients WHERE active = 1 ORDER BY name ASC"
+        );
+
+        // Get client access for each user
+        foreach ($users as &$user) {
+            $user['client_access'] = $this->db->fetchAll(
+                "SELECT uca.client_id, uca.access_level, c.name as client_name
+                 FROM user_client_access uca
+                 JOIN clients c ON uca.client_id = c.id
+                 WHERE uca.user_id = ?
+                 ORDER BY c.name ASC",
+                [$user['id']]
+            );
+        }
+
         // Get system stats
         $stats = [
             'total_users' => count($users),
@@ -50,6 +67,7 @@ class AdminController
 
         $content = View::render('admin/index', [
             'users' => $users,
+            'clients' => $clients,
             'stats' => $stats,
             'db_driver' => $this->db->getDriver(),
             'saml_enabled' => $config->get('saml.enabled', false),
@@ -71,8 +89,26 @@ class AdminController
             "SELECT * FROM users ORDER BY created_at DESC"
         );
 
+        // Get all clients for the access assignment UI
+        $clients = $this->db->fetchAll(
+            "SELECT id, name FROM clients WHERE active = 1 ORDER BY name ASC"
+        );
+
+        // Get client access for each user
+        foreach ($users as &$user) {
+            $user['client_access'] = $this->db->fetchAll(
+                "SELECT uca.client_id, uca.access_level, c.name as client_name
+                 FROM user_client_access uca
+                 JOIN clients c ON uca.client_id = c.id
+                 WHERE uca.user_id = ?
+                 ORDER BY c.name ASC",
+                [$user['id']]
+            );
+        }
+
         $content = View::render('admin/users', [
             'users' => $users,
+            'clients' => $clients,
         ]);
 
         return new Response($content);
@@ -111,6 +147,26 @@ class AdminController
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        // Handle client access assignments
+        $clientAccess = $request->post('client_access'); // Format: [{client_id: 1, access_level: 'read-only'}, ...]
+        if ($clientAccess && is_string($clientAccess)) {
+            $clientAccess = json_decode($clientAccess, true);
+        }
+
+        if (is_array($clientAccess)) {
+            foreach ($clientAccess as $access) {
+                if (isset($access['client_id']) && isset($access['access_level'])) {
+                    $this->db->insert('user_client_access', [
+                        'user_id' => $userId,
+                        'client_id' => $access['client_id'],
+                        'access_level' => $access['access_level'],
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+        }
 
         AuditLogger::log('create', 'user', $userId, [
             'email' => $email,
@@ -151,6 +207,30 @@ class AdminController
         }
 
         $this->db->update('users', $data, 'id = :id', [':id' => $id]);
+
+        // Handle client access assignments
+        // First, remove all existing access for this user
+        $this->db->query("DELETE FROM user_client_access WHERE user_id = ?", [$id]);
+
+        // Then add new assignments
+        $clientAccess = $request->post('client_access');
+        if ($clientAccess && is_string($clientAccess)) {
+            $clientAccess = json_decode($clientAccess, true);
+        }
+
+        if (is_array($clientAccess)) {
+            foreach ($clientAccess as $access) {
+                if (isset($access['client_id']) && isset($access['access_level'])) {
+                    $this->db->insert('user_client_access', [
+                        'user_id' => $id,
+                        'client_id' => $access['client_id'],
+                        'access_level' => $access['access_level'],
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+        }
 
         AuditLogger::logChange('user', $id, $user, $data, $request->ip());
 

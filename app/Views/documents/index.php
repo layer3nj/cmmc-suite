@@ -13,9 +13,38 @@ ob_start();
     </div>
 </div>
 
+<!-- Security Warning -->
+<div class="alert" style="background-color: #fef2f2; border-left: 4px solid #dc2626; color: #991b1b; margin-bottom: 20px; padding: 16px 20px;">
+    <div style="display: flex; align-items: start; gap: 12px;">
+        <svg style="width: 24px; height: 24px; flex-shrink: 0; color: #dc2626; margin-top: 2px;" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+            <h4 style="margin: 0 0 8px 0; font-weight: 600; font-size: 16px; color: #991b1b;">SECURITY NOTICE - DO NOT UPLOAD CONTROLLED INFORMATION</h4>
+            <p style="margin: 0; line-height: 1.6;">
+                <strong>Do NOT upload any documents containing:</strong>
+            </p>
+            <ul style="margin: 8px 0 0 20px; line-height: 1.8;">
+                <li><strong>CUI (Controlled Unclassified Information)</strong></li>
+                <li><strong>ITAR (International Traffic in Arms Regulations) controlled data</strong></li>
+                <li><strong>Classified information</strong> of any level</li>
+                <li><strong>Export-controlled technical data</strong></li>
+                <li><strong>Personally Identifiable Information (PII)</strong> or sensitive customer data</li>
+                <li><strong>Proprietary or confidential business information</strong></li>
+            </ul>
+            <p style="margin: 12px 0 0 0; font-weight: 500;">
+                Only upload <strong>unclassified, non-sensitive compliance documentation</strong> such as policies, procedures, sanitized evidence, and public-facing materials.
+            </p>
+        </div>
+    </div>
+</div>
+
 <div id="upload-form" class="card" style="display: none; margin-bottom: 20px;">
     <div class="card-header">
         <h3>Upload Document</h3>
+    </div>
+    <div style="background-color: #fffbeb; border: 1px solid #fbbf24; color: #92400e; padding: 12px 16px; margin: 16px 16px 0 16px; border-radius: 4px; font-size: 14px;">
+        <strong>⚠️ Reminder:</strong> Do not upload CUI, ITAR, classified, or any other controlled/sensitive information.
     </div>
     <form action="<?= $url('documents/upload') ?>" method="POST" enctype="multipart/form-data">
         <?= $csrf() ?>

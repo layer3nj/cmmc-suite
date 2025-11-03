@@ -25,7 +25,7 @@ ob_start();
 
     <div id="user-form" class="card-body" style="display: none; border-top: 1px solid #e2e8f0; margin-top: 20px;">
         <h4>Create New User</h4>
-        <form action="<?= $url('admin/users') ?>" method="POST">
+        <form id="create-user-form" action="<?= $url('admin/users') ?>" method="POST">
             <?= $csrf() ?>
             <div class="form-row">
                 <div class="form-group">
@@ -79,8 +79,8 @@ ob_start();
             </div>
 
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('user-form').style.display='none'">Cancel</button>
-                <button type="submit" class="btn btn-primary" onclick="buildClientAccessData()">Create User</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelUserForm()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitUserForm()">Create User</button>
             </div>
         </form>
     </div>
@@ -181,6 +181,39 @@ ob_start();
     </table>
 </div>
 
+<!-- Notification Toast -->
+<div id="notification-toast" style="display: none; position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; min-width: 300px; animation: slideInRight 0.3s ease-out;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <svg style="width: 24px; height: 24px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span id="notification-message" style="font-weight: 500;"></span>
+    </div>
+</div>
+
+<style>
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+</style>
+
 <script>
 // Handle client checkbox changes
 document.addEventListener('DOMContentLoaded', function() {
@@ -200,7 +233,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Build client access JSON data before form submission
+// Show notification
+function showNotification(message, type = 'success') {
+    const toast = document.getElementById('notification-toast');
+    const messageEl = document.getElementById('notification-message');
+
+    // Set colors based on type
+    if (type === 'success') {
+        toast.style.background = '#10b981';
+    } else if (type === 'error') {
+        toast.style.background = '#ef4444';
+    }
+
+    messageEl.textContent = message;
+    toast.style.display = 'block';
+    toast.style.animation = 'slideInRight 0.3s ease-out';
+
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 300);
+    }, 3000);
+}
+
+// Cancel user form
+function cancelUserForm() {
+    document.getElementById('user-form').style.display = 'none';
+    document.getElementById('create-user-form').reset();
+}
+
+// Build client access JSON data
 function buildClientAccessData() {
     const checkboxes = document.querySelectorAll('.client-checkbox:checked');
     const clientAccessData = [];
@@ -216,10 +280,55 @@ function buildClientAccessData() {
         });
     });
 
-    // Store as JSON in hidden field
-    document.getElementById('client-access-data').value = JSON.stringify(clientAccessData);
+    return clientAccessData;
+}
 
-    return true; // Allow form submission to continue
+// Submit user form via AJAX
+function submitUserForm() {
+    const form = document.getElementById('create-user-form');
+    const formData = new FormData(form);
+
+    // Build and add client access data
+    const clientAccessData = buildClientAccessData();
+    formData.set('client_access', JSON.stringify(clientAccessData));
+
+    // Get the form action URL
+    const url = form.action;
+
+    // Disable submit button during request
+    const submitBtn = event.target;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating...';
+
+    // Submit via AJAX
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('User created successfully!', 'success');
+
+            // Reset form and hide it
+            form.reset();
+            document.getElementById('user-form').style.display = 'none';
+
+            // Reload page after short delay to show updated user list
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Failed to create user', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create User';
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred. Please try again.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create User';
+    });
 }
 </script>
 

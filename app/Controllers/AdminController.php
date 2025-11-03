@@ -45,16 +45,23 @@ class AdminController
             "SELECT id, name FROM clients WHERE active = 1 ORDER BY name ASC"
         );
 
-        // Get client access for each user
-        foreach ($users as &$user) {
-            $user['client_access'] = $this->db->fetchAll(
-                "SELECT uca.client_id, uca.access_level, c.name as client_name
-                 FROM user_client_access uca
-                 JOIN clients c ON uca.client_id = c.id
-                 WHERE uca.user_id = ?
-                 ORDER BY c.name ASC",
-                [$user['id']]
-            );
+        // Get client access for each user (only if table exists)
+        try {
+            foreach ($users as &$user) {
+                $user['client_access'] = $this->db->fetchAll(
+                    "SELECT uca.client_id, uca.access_level, c.name as client_name
+                     FROM user_client_access uca
+                     JOIN clients c ON uca.client_id = c.id
+                     WHERE uca.user_id = ?
+                     ORDER BY c.name ASC",
+                    [$user['id']]
+                );
+            }
+        } catch (\Exception $e) {
+            // Table doesn't exist yet - migration hasn't been run
+            foreach ($users as &$user) {
+                $user['client_access'] = [];
+            }
         }
 
         // Get system stats
@@ -94,16 +101,23 @@ class AdminController
             "SELECT id, name FROM clients WHERE active = 1 ORDER BY name ASC"
         );
 
-        // Get client access for each user
-        foreach ($users as &$user) {
-            $user['client_access'] = $this->db->fetchAll(
-                "SELECT uca.client_id, uca.access_level, c.name as client_name
-                 FROM user_client_access uca
-                 JOIN clients c ON uca.client_id = c.id
-                 WHERE uca.user_id = ?
-                 ORDER BY c.name ASC",
-                [$user['id']]
-            );
+        // Get client access for each user (only if table exists)
+        try {
+            foreach ($users as &$user) {
+                $user['client_access'] = $this->db->fetchAll(
+                    "SELECT uca.client_id, uca.access_level, c.name as client_name
+                     FROM user_client_access uca
+                     JOIN clients c ON uca.client_id = c.id
+                     WHERE uca.user_id = ?
+                     ORDER BY c.name ASC",
+                    [$user['id']]
+                );
+            }
+        } catch (\Exception $e) {
+            // Table doesn't exist yet - migration hasn't been run
+            foreach ($users as &$user) {
+                $user['client_access'] = [];
+            }
         }
 
         $content = View::render('admin/users', [
@@ -148,23 +162,27 @@ class AdminController
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // Handle client access assignments
+        // Handle client access assignments (only if table exists)
         $clientAccess = $request->post('client_access'); // Format: [{client_id: 1, access_level: 'read-only'}, ...]
         if ($clientAccess && is_string($clientAccess)) {
             $clientAccess = json_decode($clientAccess, true);
         }
 
         if (is_array($clientAccess)) {
-            foreach ($clientAccess as $access) {
-                if (isset($access['client_id']) && isset($access['access_level'])) {
-                    $this->db->insert('user_client_access', [
-                        'user_id' => $userId,
-                        'client_id' => $access['client_id'],
-                        'access_level' => $access['access_level'],
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
+            try {
+                foreach ($clientAccess as $access) {
+                    if (isset($access['client_id']) && isset($access['access_level'])) {
+                        $this->db->insert('user_client_access', [
+                            'user_id' => $userId,
+                            'client_id' => $access['client_id'],
+                            'access_level' => $access['access_level'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
                 }
+            } catch (\Exception $e) {
+                // Table doesn't exist yet - migration hasn't been run, skip client access
             }
         }
 
@@ -208,28 +226,32 @@ class AdminController
 
         $this->db->update('users', $data, 'id = :id', [':id' => $id]);
 
-        // Handle client access assignments
-        // First, remove all existing access for this user
-        $this->db->query("DELETE FROM user_client_access WHERE user_id = ?", [$id]);
+        // Handle client access assignments (only if table exists)
+        try {
+            // First, remove all existing access for this user
+            $this->db->query("DELETE FROM user_client_access WHERE user_id = ?", [$id]);
 
-        // Then add new assignments
-        $clientAccess = $request->post('client_access');
-        if ($clientAccess && is_string($clientAccess)) {
-            $clientAccess = json_decode($clientAccess, true);
-        }
+            // Then add new assignments
+            $clientAccess = $request->post('client_access');
+            if ($clientAccess && is_string($clientAccess)) {
+                $clientAccess = json_decode($clientAccess, true);
+            }
 
-        if (is_array($clientAccess)) {
-            foreach ($clientAccess as $access) {
-                if (isset($access['client_id']) && isset($access['access_level'])) {
-                    $this->db->insert('user_client_access', [
-                        'user_id' => $id,
-                        'client_id' => $access['client_id'],
-                        'access_level' => $access['access_level'],
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
+            if (is_array($clientAccess)) {
+                foreach ($clientAccess as $access) {
+                    if (isset($access['client_id']) && isset($access['access_level'])) {
+                        $this->db->insert('user_client_access', [
+                            'user_id' => $id,
+                            'client_id' => $access['client_id'],
+                            'access_level' => $access['access_level'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            // Table doesn't exist yet - migration hasn't been run, skip client access
         }
 
         AuditLogger::logChange('user', $id, $user, $data, $request->ip());

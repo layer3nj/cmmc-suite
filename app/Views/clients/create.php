@@ -15,12 +15,18 @@ ob_start();
 <?php endif; ?>
 
 <div class="card">
-    <form action="<?= $url('clients') ?>" method="POST">
+    <form action="<?= $url('clients') ?>" method="POST" enctype="multipart/form-data">
         <?= $csrf() ?>
 
         <div class="form-group">
             <label>Client Name *</label>
             <input type="text" name="name" value="<?= $old('name') ?>" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Client Logo</label>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml" class="form-control">
+            <small>Upload PNG, JPG, or SVG. Recommended size: 200x50px (Max: 2MB)</small>
         </div>
 
         <div class="form-row">

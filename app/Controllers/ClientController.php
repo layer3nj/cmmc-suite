@@ -81,7 +81,28 @@ class ClientController
             return Response::redirect($request->baseUrl() . '/clients/create');
         }
 
-        $clientId = $this->db->insert('clients', [
+        // Handle logo upload
+        $logoPath = null;
+        if (!empty($_FILES['logo']['name'])) {
+            $uploadDir = BASE_PATH . '/public/uploads/logos/clients';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $fileExt = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+            $allowedExts = ['png', 'jpg', 'jpeg', 'svg'];
+
+            if (in_array($fileExt, $allowedExts) && $_FILES['logo']['size'] <= 2097152) { // 2MB limit
+                $fileName = 'client_' . time() . '_' . uniqid() . '.' . $fileExt;
+                $filePath = $uploadDir . '/' . $fileName;
+
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $filePath)) {
+                    $logoPath = '/uploads/logos/clients/' . $fileName;
+                }
+            }
+        }
+
+        $clientData = [
             'name' => $name,
             'contact_email' => $contactEmail,
             'contact_phone' => $contactPhone,
@@ -89,7 +110,13 @@ class ClientController
             'active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        ];
+
+        if ($logoPath !== null) {
+            $clientData['logo_path'] = $logoPath;
+        }
+
+        $clientId = $this->db->insert('clients', $clientData);
 
         // Handle framework assignments
         $selectedFrameworks = $request->post('frameworks', []);
@@ -240,6 +267,31 @@ class ClientController
             return new Response('Client not found', 404);
         }
 
+        // Handle logo upload
+        $logoPath = null;
+        if (!empty($_FILES['logo']['name'])) {
+            $uploadDir = BASE_PATH . '/public/uploads/logos/clients';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $fileExt = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+            $allowedExts = ['png', 'jpg', 'jpeg', 'svg'];
+
+            if (in_array($fileExt, $allowedExts) && $_FILES['logo']['size'] <= 2097152) { // 2MB limit
+                $fileName = 'client_' . time() . '_' . uniqid() . '.' . $fileExt;
+                $filePath = $uploadDir . '/' . $fileName;
+
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $filePath)) {
+                    // Delete old logo if exists
+                    if (!empty($client['logo_path']) && file_exists(BASE_PATH . '/public' . $client['logo_path'])) {
+                        unlink(BASE_PATH . '/public' . $client['logo_path']);
+                    }
+                    $logoPath = '/uploads/logos/clients/' . $fileName;
+                }
+            }
+        }
+
         $data = [
             'name' => trim($request->post('name')),
             'contact_email' => trim($request->post('contact_email')),
@@ -247,6 +299,10 @@ class ClientController
             'address' => trim($request->post('address')),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
+
+        if ($logoPath !== null) {
+            $data['logo_path'] = $logoPath;
+        }
 
         $this->db->update('clients', $data, 'id = :id', [':id' => $id]);
 

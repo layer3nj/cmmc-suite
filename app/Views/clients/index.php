@@ -35,7 +35,12 @@ ob_start();
                 <?php foreach ($clients as $client): ?>
                 <tr>
                     <td>
-                        <strong><?= $e($client['name']) ?></strong>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <?php if (!empty($client['logo_path'])): ?>
+                                <img src="<?= $url($client['logo_path']) ?>" alt="<?= $e($client['name']) ?>" style="max-height: 40px; max-width: 100px;">
+                            <?php endif; ?>
+                            <strong><?= $e($client['name']) ?></strong>
+                        </div>
                     </td>
                     <td><?= $e($client['contact_email'] ?? '-') ?></td>
                     <td><?= $e($client['autotask_company_id'] ?? '-') ?></td>

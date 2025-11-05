@@ -27,12 +27,23 @@ ob_start();
 <?php endif; ?>
 
 <div class="card">
-    <form action="<?= $url('clients/' . $client['id']) ?>" method="POST">
+    <form action="<?= $url('clients/' . $client['id']) ?>" method="POST" enctype="multipart/form-data">
         <?= $csrf() ?>
 
         <div class="form-group">
             <label>Client Name *</label>
             <input type="text" name="name" value="<?= $e($client['name']) ?>" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Client Logo</label>
+            <?php if (!empty($client['logo_path'])): ?>
+                <div style="margin-bottom: 10px;">
+                    <img src="<?= $url($client['logo_path']) ?>" alt="Current Logo" style="max-height: 60px; border: 1px solid #e2e8f0; padding: 5px; border-radius: 4px;">
+                </div>
+            <?php endif; ?>
+            <input type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml" class="form-control">
+            <small>Upload PNG, JPG, or SVG. Recommended size: 200x50px (Max: 2MB)</small>
         </div>
 
         <div class="form-row">

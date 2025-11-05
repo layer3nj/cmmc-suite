@@ -9,7 +9,12 @@ ob_start();
     <div class="breadcrumb">
         <a href="<?= $url('clients') ?>">Clients</a> / <?= $e($client['name']) ?>
     </div>
-    <h1><?= $e($client['name']) ?></h1>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <?php if (!empty($client['logo_path'])): ?>
+            <img src="<?= $url($client['logo_path']) ?>" alt="<?= $e($client['name']) ?> Logo" style="max-height: 60px; max-width: 200px;">
+        <?php endif; ?>
+        <h1><?= $e($client['name']) ?></h1>
+    </div>
     <div class="page-actions">
         <a href="<?= $url('clients/' . $client['id'] . '/edit') ?>" class="btn btn-secondary">Edit</a>
         <a href="<?= $url('clients/' . $client['id'] . '/select') ?>" class="btn btn-primary">Select Client</a>

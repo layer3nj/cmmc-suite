@@ -170,6 +170,12 @@
 <body>
     <button onclick="window.print()" class="print-button no-print">🖨️ Print to PDF</button>
 
+    <?php if (!empty($app_logo)): ?>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="<?= $app_logo ?>" alt="<?= $e($app_name ?? 'CMMC Compliance Suite') ?>" style="max-height: 80px; max-width: 300px;">
+        </div>
+    <?php endif; ?>
+
     <h1><?= $e($framework_name) ?></h1>
 
     <div class="header-info">

@@ -62,6 +62,38 @@ ob_start();
 </div>
 <?php endif; ?>
 
+<?php if (!empty($category_counts)): ?>
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3>Filter by Category</h3>
+    </div>
+    <div style="padding: 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <a href="<?= $url('controls/' . strtolower($framework)) ?>"
+           class="btn btn-sm <?= empty($filters['category']) ? 'btn-primary' : 'btn-secondary' ?>"
+           style="min-width: 90px;">
+            All Categories
+        </a>
+        <?php foreach ($category_counts as $cat): ?>
+            <?php
+            $abbr = $category_abbreviations[$cat['category']] ?? substr($cat['category'], 0, 2);
+            $isActive = ($filters['category'] ?? '') === $cat['category'];
+            ?>
+            <a href="<?= $url('controls/' . strtolower($framework) . '?category=' . urlencode($cat['category'])) ?>"
+               class="btn btn-sm <?= $isActive ? 'btn-primary' : 'btn-secondary' ?>"
+               title="<?= $e($cat['category']) ?>"
+               style="min-width: 70px;">
+                <?= $e($abbr) ?> (<?= $cat['count'] ?>)
+            </a>
+        <?php endforeach; ?>
+        <?php if (!empty($filters['category'])): ?>
+            <span style="margin-left: 10px; color: #666;">
+                Showing <?= $e($filters['category']) ?> controls only
+            </span>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (empty($controls)): ?>
     <div class="alert alert-info">
         <span class="alert-icon">ℹ️</span>
@@ -99,6 +131,9 @@ ob_start();
             <thead>
                 <tr>
                     <th>Code</th>
+                    <?php if (in_array($framework, ['CMMC', 'NIST800171'])): ?>
+                    <th>Category</th>
+                    <?php endif; ?>
                     <th>Title</th>
                     <?php if ($framework === 'CMMC'): ?>
                     <th>ML Level</th>
@@ -119,6 +154,16 @@ ob_start();
                 <?php foreach ($controls as $control): ?>
                 <tr>
                     <td><code><?= $e($control['code']) ?></code></td>
+                    <?php if (in_array($framework, ['CMMC', 'NIST800171'])): ?>
+                    <td>
+                        <?php
+                        $categoryAbbr = $category_abbreviations[$control['category'] ?? ''] ?? '—';
+                        ?>
+                        <span class="badge badge-info" title="<?= $e($control['category'] ?? 'Unknown') ?>">
+                            <?= $e($categoryAbbr) ?>
+                        </span>
+                    </td>
+                    <?php endif; ?>
                     <td><?= $e($control['title']) ?></td>
                     <?php if ($framework === 'CMMC'): ?>
                     <td>

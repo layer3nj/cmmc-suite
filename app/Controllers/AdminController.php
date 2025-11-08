@@ -784,50 +784,94 @@ class AdminController
         }
 
         try {
-            // Reset all to default (3 points)
-            $this->db->query(
-                "UPDATE controls SET sprs_score = 3 WHERE framework IN ('NIST800171', 'CMMC')"
+            // Reset all NIST 800-171 and CMMC controls to default (3 points)
+            $updated1 = $this->db->query(
+                "UPDATE controls SET sprs_score = 3 WHERE framework = 'NIST800171'"
             );
 
-            // HIGH-RISK CONTROLS (5 points)
+            $updated2 = $this->db->query(
+                "UPDATE controls SET sprs_score = 3 WHERE framework = 'CMMC'"
+            );
+
+            // HIGH-RISK CONTROLS (5 points) - Access Control: Privileged functions and remote access
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'NIST800171'
                  AND code IN ('3.1.5', '3.1.6', '3.1.7')"
             );
 
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'CMMC'
+                 AND code IN ('3.1.5', '3.1.6', '3.1.7')"
+            );
+
+            // HIGH-RISK CONTROLS (5 points) - Multi-factor authentication
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework = 'NIST800171'
                  AND code IN ('3.5.3', '3.5.4')"
             );
 
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'CMMC'
+                 AND code IN ('3.5.3', '3.5.4')"
+            );
+
+            // HIGH-RISK CONTROLS (5 points) - Incident Response
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework = 'NIST800171'
                  AND code IN ('3.6.1', '3.6.2')"
             );
 
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'CMMC'
+                 AND code IN ('3.6.1', '3.6.2')"
+            );
+
+            // HIGH-RISK CONTROLS (5 points) - Encryption
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework = 'NIST800171'
                  AND code IN ('3.13.8', '3.13.11', '3.13.16')"
             );
 
-            // LOW-RISK CONTROLS (1 point)
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework = 'CMMC'
+                 AND code IN ('3.13.8', '3.13.11', '3.13.16')"
+            );
+
+            // LOW-RISK CONTROLS (1 point) - Awareness and Training
             $this->db->query(
                 "UPDATE controls SET sprs_score = 1
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'NIST800171'
                  AND code LIKE '3.2.%'"
             );
 
             $this->db->query(
                 "UPDATE controls SET sprs_score = 1
-                 WHERE framework IN ('NIST800171', 'CMMC')
+                 WHERE framework = 'CMMC'
+                 AND code LIKE '3.2.%'"
+            );
+
+            // LOW-RISK CONTROLS (1 point) - Some maintenance and personnel security
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 1
+                 WHERE framework = 'NIST800171'
                  AND code IN ('3.7.3', '3.7.6', '3.9.2')"
             );
 
-            Session::flash('success', 'SPRS scores updated successfully! High-risk controls set to 5 points, low-risk to 1 point, others to 3 points.');
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 1
+                 WHERE framework = 'CMMC'
+                 AND code IN ('3.7.3', '3.7.6', '3.9.2')"
+            );
+
+            Session::flash('success', 'SPRS scores updated successfully for both NIST 800-171 and CMMC! High-risk controls set to 5 points, low-risk to 1 point, others to 3 points.');
             AuditLogger::log('update_sprs_scores', 'controls', null, null, $request->ip());
 
         } catch (\Exception $e) {

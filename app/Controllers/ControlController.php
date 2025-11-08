@@ -49,6 +49,7 @@ class ControlController
         // Get filters
         $search = $request->query('search', '');
         $mlLevel = $request->query('ml_level', '');
+        $category = $request->query('category', '');
         $status = $request->query('status', '');
 
         // Build query
@@ -68,6 +69,11 @@ class ControlController
             $params[] = $mlLevel;
         }
 
+        if (!empty($category)) {
+            $sql .= " AND category = ?";
+            $params[] = $category;
+        }
+
         $sql .= " ORDER BY code ASC";
 
         $controls = $this->db->fetchAll($sql, $params);
@@ -83,13 +89,38 @@ class ControlController
             }
         }
 
+        // Get control counts by category
+        $categoryCountsSql = "SELECT category, COUNT(*) as count FROM controls WHERE framework = ? AND category IS NOT NULL GROUP BY category ORDER BY category ASC";
+        $categoryCounts = $this->db->fetchAll($categoryCountsSql, [$framework]);
+
+        // Map category names to abbreviations
+        $categoryAbbreviations = [
+            'Access Control' => 'AC',
+            'Awareness and Training' => 'AT',
+            'Audit and Accountability' => 'AU',
+            'Configuration Management' => 'CM',
+            'Identification and Authentication' => 'IA',
+            'Incident Response' => 'IR',
+            'Maintenance' => 'MA',
+            'Media Protection' => 'MP',
+            'Personnel Security' => 'PS',
+            'Physical Protection' => 'PE',
+            'Risk Assessment' => 'RA',
+            'Security Assessment' => 'CA',
+            'System and Communications Protection' => 'SC',
+            'System and Information Integrity' => 'SI',
+        ];
+
         $content = View::render('controls/index', [
             'framework' => $framework,
             'controls' => $controls,
             'ml_counts' => $mlCounts,
+            'category_counts' => $categoryCounts,
+            'category_abbreviations' => $categoryAbbreviations,
             'filters' => [
                 'search' => $search,
                 'ml_level' => $mlLevel,
+                'category' => $category,
                 'status' => $status,
             ],
         ]);

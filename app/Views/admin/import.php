@@ -115,6 +115,52 @@ ob_start();
 
 <div class="card" style="margin-top: 20px;">
     <div class="card-header">
+        <h3>Run Database Seeders</h3>
+    </div>
+
+    <form action="<?= $url('admin/run-seeders') ?>" method="POST" class="form-section">
+        <?= $csrf() ?>
+
+        <div class="form-group">
+            <p>Run all database seeders to populate data such as policy templates, sample data, and other predefined content.</p>
+            <p><strong>Includes:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 25px;">
+                <li>CMMC ML2 Policy Templates (14 comprehensive policies)</li>
+                <li>Sample assessment data</li>
+                <li>Additional framework-specific content</li>
+            </ul>
+            <p><strong>Note:</strong> Seeders will skip items that already exist in the database. Safe to run multiple times.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary" onclick="return confirm('Run all database seeders?')">Run Seeders</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3>Update SPRS Scores</h3>
+    </div>
+
+    <form action="<?= $url('admin/update-sprs-scores') ?>" method="POST" class="form-section">
+        <?= $csrf() ?>
+
+        <div class="form-group">
+            <p>Update SPRS scoring for all NIST 800-171 and CMMC controls with accurate point weights based on the DoD Assessment Methodology.</p>
+            <p><strong>Scoring breakdown:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 25px;">
+                <li><strong>5 points</strong> - High-risk controls (MFA, encryption, incident response, privileged access)</li>
+                <li><strong>3 points</strong> - Medium-risk controls (most controls)</li>
+                <li><strong>1 point</strong> - Low-risk controls (awareness/training, some procedural)</li>
+            </ul>
+            <p><strong>Note:</strong> This will overwrite existing SPRS scores. Use this if migration 023 didn't set scores correctly.</p>
+        </div>
+
+        <button type="submit" class="btn btn-warning" onclick="return confirm('Update all SPRS scores? This will overwrite current values.')">Update SPRS Scores</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
         <h3>Import Customers</h3>
     </div>
 

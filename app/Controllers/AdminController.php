@@ -671,4 +671,169 @@ class AdminController
 
         return Response::redirect($request->baseUrl() . '/admin/import');
     }
+
+    public function runSeeders(Request $request): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/import');
+        }
+
+        try {
+            $seedersDir = BASE_PATH . '/database/seeds';
+            $seederFiles = glob($seedersDir . '/*.php');
+            sort($seederFiles);
+
+            $seedersRun = 0;
+            $totalInserted = 0;
+            $totalUpdated = 0;
+
+            foreach ($seederFiles as $file) {
+                $seederName = basename($file);
+
+                if (file_exists($file)) {
+                    $seeder = require $file;
+
+                    // Handle different seeder formats
+                    if (is_callable($seeder)) {
+                        try {
+                            $result = $seeder($this->db);
+
+                            // Handle both old format (integer) and new format (array)
+                            if (is_array($result)) {
+                                $totalInserted += $result['inserted'] ?? 0;
+                                $totalUpdated += $result['updated'] ?? 0;
+                            } else {
+                                $totalInserted += (int)$result;
+                            }
+                            $seedersRun++;
+                        } catch (\Exception $e) {
+                            // Log but continue with other seeders
+                            error_log("Seeder {$seederName} failed: " . $e->getMessage());
+                        }
+                    } elseif (is_array($seeder)) {
+                        // Handle array-based seeders (like policy templates)
+                        try {
+                            foreach ($seeder as $item) {
+                                // Detect table based on seeder data structure
+                                if (isset($item['title']) && isset($item['category']) && isset($item['content'])) {
+                                    // This is a policy seeder
+                                    $existing = $this->db->fetchOne(
+                                        "SELECT id FROM policies WHERE title = ? AND category = ?",
+                                        [$item['title'], $item['category']]
+                                    );
+
+                                    if (!$existing) {
+                                        $this->db->insert('policies', array_merge($item, [
+                                            'created_at' => date('Y-m-d H:i:s'),
+                                            'updated_at' => date('Y-m-d H:i:s')
+                                        ]));
+                                        $totalInserted++;
+                                    } else {
+                                        $totalUpdated++;
+                                    }
+                                }
+                            }
+                            $seedersRun++;
+                        } catch (\Exception $e) {
+                            error_log("Seeder {$seederName} failed: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
+            if ($seedersRun > 0) {
+                $message = "Successfully ran {$seedersRun} seeder(s): {$totalInserted} inserted, {$totalUpdated} skipped (already exist).";
+                Session::flash('success', $message);
+                AuditLogger::log('run_seeders', 'database', null, [
+                    'seeders' => $seedersRun,
+                    'inserted' => $totalInserted,
+                    'updated' => $totalUpdated
+                ], $request->ip());
+            } else {
+                Session::flash('info', 'No seeders were run.');
+            }
+        } catch (\Exception $e) {
+            Session::flash('error', 'Seeders failed: ' . $e->getMessage());
+        }
+
+        return Response::redirect($request->baseUrl() . '/admin/import');
+    }
+
+    public function updateSprsScores(Request $request): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/import');
+        }
+
+        try {
+            // Reset all to default (3 points)
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 3 WHERE framework IN ('NIST800171', 'CMMC')"
+            );
+
+            // HIGH-RISK CONTROLS (5 points)
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code IN ('3.1.5', '3.1.6', '3.1.7')"
+            );
+
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code IN ('3.5.3', '3.5.4')"
+            );
+
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code IN ('3.6.1', '3.6.2')"
+            );
+
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 5
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code IN ('3.13.8', '3.13.11', '3.13.16')"
+            );
+
+            // LOW-RISK CONTROLS (1 point)
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 1
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code LIKE '3.2.%'"
+            );
+
+            $this->db->query(
+                "UPDATE controls SET sprs_score = 1
+                 WHERE framework IN ('NIST800171', 'CMMC')
+                 AND code IN ('3.7.3', '3.7.6', '3.9.2')"
+            );
+
+            Session::flash('success', 'SPRS scores updated successfully! High-risk controls set to 5 points, low-risk to 1 point, others to 3 points.');
+            AuditLogger::log('update_sprs_scores', 'controls', null, null, $request->ip());
+
+        } catch (\Exception $e) {
+            Session::flash('error', 'Failed to update SPRS scores: ' . $e->getMessage());
+        }
+
+        return Response::redirect($request->baseUrl() . '/admin/import');
+    }
 }

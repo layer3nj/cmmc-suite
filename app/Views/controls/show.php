@@ -49,6 +49,60 @@ ob_start();
             <td><?= $e($control['description']) ?></td>
         </tr>
         <?php endif; ?>
+        <?php if (!empty($control['category'])): ?>
+        <tr>
+            <th>Category</th>
+            <td>
+                <?php
+                $categoryAbbreviations = [
+                    'Access Control' => 'AC',
+                    'Awareness and Training' => 'AT',
+                    'Audit and Accountability' => 'AU',
+                    'Configuration Management' => 'CM',
+                    'Identification and Authentication' => 'IA',
+                    'Incident Response' => 'IR',
+                    'Maintenance' => 'MA',
+                    'Media Protection' => 'MP',
+                    'Personnel Security' => 'PS',
+                    'Physical Protection' => 'PE',
+                    'Risk Assessment' => 'RA',
+                    'Security Assessment' => 'CA',
+                    'System and Communications Protection' => 'SC',
+                    'System and Information Integrity' => 'SI',
+                ];
+                $abbr = $categoryAbbreviations[$control['category']] ?? '';
+                ?>
+                <span class="badge badge-info"><?= $e($abbr) ?></span> <?= $e($control['category']) ?>
+            </td>
+        </tr>
+        <?php endif; ?>
+        <?php if (isset($control['sprs_score']) && in_array($control['framework'], ['NIST800171', 'CMMC'])): ?>
+        <tr>
+            <th>SPRS Points</th>
+            <td>
+                <strong style="font-size: 1.1em;"><?= $control['sprs_score'] ?></strong> points
+                <?php if ($control['sprs_score'] == 5): ?>
+                    <span class="badge badge-danger">High-Risk</span>
+                <?php elseif ($control['sprs_score'] == 1): ?>
+                    <span class="badge badge-success">Low-Risk</span>
+                <?php else: ?>
+                    <span class="badge badge-warning">Medium-Risk</span>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endif; ?>
+        <?php if (isset($control['partial_credit']) && in_array($control['framework'], ['NIST800171', 'CMMC'])): ?>
+        <tr>
+            <th>Partial Credit</th>
+            <td>
+                <?php if ($control['partial_credit'] == 1): ?>
+                    <span class="badge badge-success">✓ Yes</span> - Partial credit may be awarded for this control
+                <?php else: ?>
+                    <span class="badge badge-secondary">No</span> - Full implementation required
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php endif; ?>
         <?php if (isset($control['stig_version'])): ?>
         <tr>
             <th>STIG Version</th>

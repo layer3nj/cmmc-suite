@@ -37,6 +37,31 @@ ob_start();
     </a>
 </div>
 
+<?php if ($framework === 'CMMC' && !empty($ml_counts)): ?>
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3>Filter by Maturity Level</h3>
+    </div>
+    <div style="padding: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <a href="<?= $url('controls/cmmc') ?>"
+           class="btn btn-sm <?= empty($filters['ml_level']) ? 'btn-primary' : 'btn-secondary' ?>">
+            All Levels (<?= array_sum($ml_counts) ?>)
+        </a>
+        <?php for ($level = 1; $level <= 3; $level++): ?>
+            <a href="<?= $url('controls/cmmc?ml_level=' . $level) ?>"
+               class="btn btn-sm <?= ($filters['ml_level'] ?? '') == $level ? 'btn-primary' : 'btn-secondary' ?>">
+                ML<?= $level ?> (<?= $ml_counts[$level] ?? 0 ?>)
+            </a>
+        <?php endfor; ?>
+        <?php if (!empty($filters['ml_level'])): ?>
+            <span style="margin-left: 10px; color: #666;">
+                Showing ML<?= $filters['ml_level'] ?> controls only
+            </span>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (empty($controls)): ?>
     <div class="alert alert-info">
         <span class="alert-icon">ℹ️</span>

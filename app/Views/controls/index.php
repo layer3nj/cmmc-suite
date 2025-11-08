@@ -77,6 +77,12 @@ ob_start();
                     <th>Title</th>
                     <?php if ($framework === 'CMMC'): ?>
                     <th>ML Level</th>
+                    <th>SPRS Points</th>
+                    <th>Partial Credit</th>
+                    <?php endif; ?>
+                    <?php if ($framework === 'NIST800171'): ?>
+                    <th>SPRS Points</th>
+                    <th>Partial Credit</th>
                     <?php endif; ?>
                     <?php if ($framework === 'STIG'): ?>
                     <th>Severity</th>
@@ -92,6 +98,28 @@ ob_start();
                     <?php if ($framework === 'CMMC'): ?>
                     <td>
                         <span class="badge badge-info">ML<?= $control['ml_level'] ?></span>
+                    </td>
+                    <td>
+                        <strong><?= $control['sprs_score'] ?? 3 ?></strong> pts
+                    </td>
+                    <td>
+                        <?php if (!empty($control['partial_credit'])): ?>
+                            <span class="badge badge-success">✓ Yes</span>
+                        <?php else: ?>
+                            <span class="badge badge-secondary">No</span>
+                        <?php endif; ?>
+                    </td>
+                    <?php endif; ?>
+                    <?php if ($framework === 'NIST800171'): ?>
+                    <td>
+                        <strong><?= $control['sprs_score'] ?? 3 ?></strong> pts
+                    </td>
+                    <td>
+                        <?php if (!empty($control['partial_credit'])): ?>
+                            <span class="badge badge-success">✓ Yes</span>
+                        <?php else: ?>
+                            <span class="badge badge-secondary">No</span>
+                        <?php endif; ?>
                     </td>
                     <?php endif; ?>
                     <?php if ($framework === 'STIG'): ?>

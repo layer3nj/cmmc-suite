@@ -95,6 +95,11 @@
                         <span class="nav-label">Documents</span>
                     </a>
 
+                    <a href="<?= $url('policies') ?>" class="nav-item <?= ($current_page ?? '') === 'policies' ? 'active' : '' ?>">
+                        <span class="nav-icon">📜</span>
+                        <span class="nav-label">Policy Templates</span>
+                    </a>
+
                     <a href="<?= $url('reports') ?>" class="nav-item <?= ($current_page ?? '') === 'reports' ? 'active' : '' ?>">
                         <span class="nav-icon">📄</span>
                         <span class="nav-label">Reports</span>

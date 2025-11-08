@@ -78,6 +78,17 @@ ob_start();
             <h3>SAML SSO Configuration</h3>
         </div>
 
+        <div style="padding: 15px; background: #f0f9ff; border-left: 4px solid #3b82f6; margin-bottom: 15px;">
+            <strong>📘 Need help setting up Microsoft Entra SAML?</strong><br>
+            <a href="https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/add-application-portal-setup-sso" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">
+                Microsoft Entra SAML Setup Guide →
+            </a>
+            <span style="margin: 0 8px; color: #94a3b8;">|</span>
+            <a href="https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/tutorial-manage-certificates-for-federated-single-sign-on" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">
+                Certificate Management →
+            </a>
+        </div>
+
         <div class="form-group">
             <label>
                 <input type="checkbox" name="saml_enabled" value="1" <?= !empty($settings['saml_enabled']) ? 'checked' : '' ?> id="saml-toggle">

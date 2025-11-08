@@ -160,6 +160,15 @@ class Application
             $this->router->get('/documents/{id}/download', 'App\Controllers\DocumentController@download');
             $this->router->post('/documents/{id}/delete', 'App\Controllers\DocumentController@delete');
 
+            // Policy Templates
+            $this->router->get('/policies', 'App\Controllers\PolicyController@index');
+            $this->router->get('/policies/create', 'App\Controllers\PolicyController@create');
+            $this->router->post('/policies', 'App\Controllers\PolicyController@store');
+            $this->router->get('/policies/{id}', 'App\Controllers\PolicyController@show');
+            $this->router->get('/policies/{id}/edit', 'App\Controllers\PolicyController@edit');
+            $this->router->post('/policies/{id}', 'App\Controllers\PolicyController@update');
+            $this->router->post('/policies/{id}/delete', 'App\Controllers\PolicyController@delete');
+
             // Integrations
             $this->router->get('/integrations', 'App\Controllers\IntegrationController@index');
             $this->router->post('/integrations/autotask/connect', 'App\Controllers\IntegrationController@autotaskConnect');

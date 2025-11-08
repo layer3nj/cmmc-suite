@@ -97,13 +97,19 @@ ob_start();
                     <td><?= $e($control['title']) ?></td>
                     <?php if ($framework === 'CMMC'): ?>
                     <td>
-                        <span class="badge badge-info">ML<?= $control['ml_level'] ?></span>
+                        <?php
+                        $mlBadge = 'badge-info';
+                        if ($control['ml_level'] == 1) $mlBadge = 'badge-success';
+                        elseif ($control['ml_level'] == 2) $mlBadge = 'badge-warning';
+                        elseif ($control['ml_level'] == 3) $mlBadge = 'badge-danger';
+                        ?>
+                        <span class="badge <?= $mlBadge ?>">ML<?= $control['ml_level'] ?></span>
                     </td>
                     <td>
                         <strong><?= $control['sprs_score'] ?? 3 ?></strong> pts
                     </td>
                     <td>
-                        <?php if (!empty($control['partial_credit'])): ?>
+                        <?php if (isset($control['partial_credit']) && $control['partial_credit'] == 1): ?>
                             <span class="badge badge-success">✓ Yes</span>
                         <?php else: ?>
                             <span class="badge badge-secondary">No</span>
@@ -115,7 +121,7 @@ ob_start();
                         <strong><?= $control['sprs_score'] ?? 3 ?></strong> pts
                     </td>
                     <td>
-                        <?php if (!empty($control['partial_credit'])): ?>
+                        <?php if (isset($control['partial_credit']) && $control['partial_credit'] == 1): ?>
                             <span class="badge badge-success">✓ Yes</span>
                         <?php else: ?>
                             <span class="badge badge-secondary">No</span>

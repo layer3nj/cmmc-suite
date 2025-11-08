@@ -6,7 +6,7 @@
 
 return [
     'mysql' => "
-        ALTER TABLE clients ADD COLUMN logo_path VARCHAR(500) NULL AFTER notes;
+        ALTER TABLE clients ADD COLUMN logo_path VARCHAR(500) NULL;
     ",
     'pgsql' => "
         ALTER TABLE clients ADD COLUMN logo_path VARCHAR(500) NULL;

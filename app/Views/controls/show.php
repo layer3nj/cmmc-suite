@@ -112,6 +112,131 @@ ob_start();
     </table>
 </div>
 
+<?php if (!empty($control['description'])): ?>
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3>📋 Implementation Guidance</h3>
+    </div>
+    <div style="padding: 20px;">
+        <h4 style="margin-top: 0; color: #4a5568;">What Does This Control Require?</h4>
+        <div style="background: #f7fafc; padding: 15px; border-left: 4px solid #667eea; margin-bottom: 20px;">
+            <?= nl2br($e($control['description'])) ?>
+        </div>
+
+        <h4 style="color: #4a5568;">How to Implement:</h4>
+        <div style="line-height: 1.8;">
+            <?php
+            // Generate basic implementation steps based on control category
+            $category = $control['category'] ?? '';
+            $code = $control['code'];
+
+            echo "<p><strong>General Steps:</strong></p>";
+            echo "<ol style='padding-left: 25px;'>";
+
+            // Category-specific guidance
+            if (strpos($category, 'Access Control') !== false) {
+                echo "<li>Document your access control policy and procedures</li>";
+                echo "<li>Implement technical controls (user permissions, role-based access, etc.)</li>";
+                echo "<li>Train users on proper access procedures</li>";
+                echo "<li>Review and update access lists regularly</li>";
+                echo "<li>Audit and log access attempts</li>";
+            } elseif (strpos($category, 'Awareness and Training') !== false) {
+                echo "<li>Develop security awareness training materials</li>";
+                echo "<li>Schedule regular training sessions for all personnel</li>";
+                echo "<li>Document training attendance and completion</li>";
+                echo "<li>Update training content annually or when threats change</li>";
+                echo "<li>Test user knowledge through quizzes or simulations</li>";
+            } elseif (strpos($category, 'Audit') !== false) {
+                echo "<li>Configure logging on all relevant systems</li>";
+                echo "<li>Determine what events need to be logged</li>";
+                echo "<li>Implement centralized log collection if possible</li>";
+                echo "<li>Set up log retention policies</li>";
+                echo "<li>Review logs regularly for security events</li>";
+            } elseif (strpos($category, 'Configuration Management') !== false) {
+                echo "<li>Document baseline configurations for all systems</li>";
+                echo "<li>Implement configuration management tools</li>";
+                echo "<li>Create change control procedures</li>";
+                echo "<li>Test all configuration changes before deployment</li>";
+                echo "<li>Maintain inventory of all systems and software</li>";
+            } elseif (strpos($category, 'Identification and Authentication') !== false) {
+                echo "<li>Implement unique user accounts (no shared accounts)</li>";
+                echo "<li>Configure strong password requirements</li>";
+                echo "<li>Enable multi-factor authentication where required</li>";
+                echo "<li>Disable or remove inactive accounts</li>";
+                echo "<li>Monitor and log authentication attempts</li>";
+            } elseif (strpos($category, 'Incident Response') !== false) {
+                echo "<li>Create an incident response plan</li>";
+                echo "<li>Define roles and responsibilities for incident handling</li>";
+                echo "<li>Establish incident detection and monitoring capabilities</li>";
+                echo "<li>Set up incident reporting procedures</li>";
+                echo "<li>Practice incident response through tabletop exercises</li>";
+            } elseif (strpos($category, 'Maintenance') !== false) {
+                echo "<li>Document maintenance procedures and schedules</li>";
+                echo "<li>Approve all maintenance activities in advance</li>";
+                echo "<li>Control and sanitize maintenance tools</li>";
+                echo "<li>Log all maintenance activities</li>";
+                echo "<li>Review maintenance logs periodically</li>";
+            } elseif (strpos($category, 'Media Protection') !== false) {
+                echo "<li>Identify and mark all media containing sensitive information</li>";
+                echo "<li>Implement physical controls for media storage</li>";
+                echo "<li>Create procedures for media transport</li>";
+                echo "<li>Sanitize media before disposal or reuse</li>";
+                echo "<li>Maintain logs of media handling and disposal</li>";
+            } elseif (strpos($category, 'Personnel Security') !== false) {
+                echo "<li>Conduct background checks appropriate to position risk</li>";
+                echo "<li>Require signed confidentiality agreements</li>";
+                echo "<li>Implement termination procedures (access removal, exit interview)</li>";
+                echo "<li>Define acceptable use policies</li>";
+                echo "<li>Review and update personnel security policies annually</li>";
+            } elseif (strpos($category, 'Physical Protection') !== false) {
+                echo "<li>Identify physical security boundaries</li>";
+                echo "<li>Implement access controls (badges, locks, etc.)</li>";
+                echo "<li>Install monitoring equipment (cameras, alarms)</li>";
+                echo "<li>Control visitor access and escort procedures</li>";
+                echo "<li>Maintain logs of physical access</li>";
+            } elseif (strpos($category, 'Risk Assessment') !== false) {
+                echo "<li>Identify and document threats and vulnerabilities</li>";
+                echo "<li>Assess likelihood and impact of potential risks</li>";
+                echo "<li>Prioritize risks based on assessment results</li>";
+                echo "<li>Develop risk mitigation strategies</li>";
+                echo "<li>Review and update risk assessments regularly</li>";
+            } elseif (strpos($category, 'Security Assessment') !== false) {
+                echo "<li>Develop a security assessment plan</li>";
+                echo "<li>Conduct regular vulnerability scans</li>";
+                echo "<li>Perform penetration testing periodically</li>";
+                echo "<li>Document all findings and create remediation plans</li>";
+                echo "<li>Track remediation progress and verify fixes</li>";
+            } elseif (strpos($category, 'System and Communications Protection') !== false) {
+                echo "<li>Implement boundary protection (firewalls, etc.)</li>";
+                echo "<li>Configure encryption for data in transit</li>";
+                echo "<li>Separate internal networks with VLANs or segmentation</li>";
+                echo "<li>Monitor network traffic for anomalies</li>";
+                echo "<li>Update and patch security controls regularly</li>";
+            } elseif (strpos($category, 'System and Information Integrity') !== false) {
+                echo "<li>Deploy and configure antimalware software</li>";
+                echo "<li>Implement patch management procedures</li>";
+                echo "<li>Set up security alert and advisory monitoring</li>";
+                echo "<li>Conduct regular system integrity checks</li>";
+                echo "<li>Update malware definitions and security tools regularly</li>";
+            } else {
+                echo "<li>Review the control requirements carefully</li>";
+                echo "<li>Document your implementation approach</li>";
+                echo "<li>Implement necessary technical and administrative controls</li>";
+                echo "<li>Test the implementation</li>";
+                echo "<li>Maintain documentation and evidence of compliance</li>";
+            }
+
+            echo "</ol>";
+            ?>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-left: 4px solid #f59e0b;">
+            <strong>💡 Tip:</strong> Document everything! Keep records of policies, procedures, implementation details, training records, and any changes made to systems. This documentation is essential for demonstrating compliance during assessments.
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($mappings['maps_to']) || !empty($mappings['mapped_from'])): ?>
 <div class="card" style="margin-top: 20px;">
     <div class="card-header">

@@ -28,7 +28,7 @@ class PolicyController
         $authCheck = AuthMiddleware::handle($request);
         if ($authCheck) return $authCheck;
 
-        $category = $request->get('category');
+        $category = $request->query('category', '');
 
         // Get all policies
         if ($category) {

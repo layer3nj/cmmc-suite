@@ -803,7 +803,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
                  WHERE framework = 'CMMC'
-                 AND code IN ('3.1.5', '3.1.6', '3.1.7')"
+                 AND (code LIKE '%3.1.5' OR code LIKE '%3.1.6' OR code LIKE '%3.1.7')"
             );
 
             // HIGH-RISK CONTROLS (5 points) - Multi-factor authentication
@@ -816,7 +816,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
                  WHERE framework = 'CMMC'
-                 AND code IN ('3.5.3', '3.5.4')"
+                 AND (code LIKE '%3.5.3' OR code LIKE '%3.5.4')"
             );
 
             // HIGH-RISK CONTROLS (5 points) - Incident Response
@@ -829,7 +829,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
                  WHERE framework = 'CMMC'
-                 AND code IN ('3.6.1', '3.6.2')"
+                 AND (code LIKE '%3.6.1' OR code LIKE '%3.6.2')"
             );
 
             // HIGH-RISK CONTROLS (5 points) - Encryption
@@ -842,7 +842,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 5
                  WHERE framework = 'CMMC'
-                 AND code IN ('3.13.8', '3.13.11', '3.13.16')"
+                 AND (code LIKE '%3.13.8' OR code LIKE '%3.13.11' OR code LIKE '%3.13.16')"
             );
 
             // LOW-RISK CONTROLS (1 point) - Awareness and Training
@@ -855,7 +855,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 1
                  WHERE framework = 'CMMC'
-                 AND code LIKE '3.2.%'"
+                 AND code LIKE '%3.2.%'"
             );
 
             // LOW-RISK CONTROLS (1 point) - Some maintenance and personnel security
@@ -868,7 +868,7 @@ class AdminController
             $this->db->query(
                 "UPDATE controls SET sprs_score = 1
                  WHERE framework = 'CMMC'
-                 AND code IN ('3.7.3', '3.7.6', '3.9.2')"
+                 AND (code LIKE '%3.7.3' OR code LIKE '%3.7.6' OR code LIKE '%3.9.2')"
             );
 
             Session::flash('success', 'SPRS scores updated successfully for both NIST 800-171 and CMMC! High-risk controls set to 5 points, low-risk to 1 point, others to 3 points.');

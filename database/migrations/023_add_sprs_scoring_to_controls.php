@@ -59,28 +59,28 @@ return [
         WHERE framework = 'NIST800171' AND code IN ('3.1.5', '3.1.6', '3.1.7');
 
         UPDATE controls SET sprs_score = 5
-        WHERE framework = 'CMMC' AND code IN ('3.1.5', '3.1.6', '3.1.7');
+        WHERE framework = 'CMMC' AND (code LIKE '%3.1.5' OR code LIKE '%3.1.6' OR code LIKE '%3.1.7');
 
         -- Identification & Authentication - Multi-factor authentication
         UPDATE controls SET sprs_score = 5
         WHERE framework = 'NIST800171' AND code IN ('3.5.3', '3.5.4');
 
         UPDATE controls SET sprs_score = 5
-        WHERE framework = 'CMMC' AND code IN ('3.5.3', '3.5.4');
+        WHERE framework = 'CMMC' AND (code LIKE '%3.5.3' OR code LIKE '%3.5.4');
 
         -- Incident Response - Detection and response
         UPDATE controls SET sprs_score = 5
         WHERE framework = 'NIST800171' AND code IN ('3.6.1', '3.6.2');
 
         UPDATE controls SET sprs_score = 5
-        WHERE framework = 'CMMC' AND code IN ('3.6.1', '3.6.2');
+        WHERE framework = 'CMMC' AND (code LIKE '%3.6.1' OR code LIKE '%3.6.2');
 
         -- System and Communications Protection - Encryption
         UPDATE controls SET sprs_score = 5
         WHERE framework = 'NIST800171' AND code IN ('3.13.8', '3.13.11', '3.13.16');
 
         UPDATE controls SET sprs_score = 5
-        WHERE framework = 'CMMC' AND code IN ('3.13.8', '3.13.11', '3.13.16');
+        WHERE framework = 'CMMC' AND (code LIKE '%3.13.8' OR code LIKE '%3.13.11' OR code LIKE '%3.13.16');
 
         -- LOW-RISK CONTROLS (1 point) - Awareness, training, procedural
         -- Awareness and Training
@@ -88,21 +88,21 @@ return [
         WHERE framework = 'NIST800171' AND code LIKE '3.2.%';
 
         UPDATE controls SET sprs_score = 1
-        WHERE framework = 'CMMC' AND code LIKE '3.2.%';
+        WHERE framework = 'CMMC' AND code LIKE '%3.2.%';
 
         -- Some maintenance requirements
         UPDATE controls SET sprs_score = 1
         WHERE framework = 'NIST800171' AND code IN ('3.7.3', '3.7.6');
 
         UPDATE controls SET sprs_score = 1
-        WHERE framework = 'CMMC' AND code IN ('3.7.3', '3.7.6');
+        WHERE framework = 'CMMC' AND (code LIKE '%3.7.3' OR code LIKE '%3.7.6');
 
         -- Some personnel security requirements
         UPDATE controls SET sprs_score = 1
         WHERE framework = 'NIST800171' AND code IN ('3.9.2');
 
         UPDATE controls SET sprs_score = 1
-        WHERE framework = 'CMMC' AND code IN ('3.9.2');
+        WHERE framework = 'CMMC' AND code LIKE '%3.9.2';
 
         -- Partial credit controls (based on NIST 800-171A assessment procedures)
         UPDATE controls
@@ -113,7 +113,8 @@ return [
         UPDATE controls
         SET partial_credit = 1
         WHERE framework = 'CMMC'
-        AND code IN ('3.1.1', '3.1.2', '3.4.1', '3.4.2', '3.5.1', '3.5.2', '3.13.1', '3.13.2');
+        AND (code LIKE '%3.1.1' OR code LIKE '%3.1.2' OR code LIKE '%3.4.1' OR code LIKE '%3.4.2'
+             OR code LIKE '%3.5.1' OR code LIKE '%3.5.2' OR code LIKE '%3.13.1' OR code LIKE '%3.13.2');
     ",
     'pgsql' => "
         ALTER TABLE controls

@@ -10,7 +10,7 @@
 return [
     'mysql' => "
         ALTER TABLE controls
-        ADD COLUMN IF NOT EXISTS category VARCHAR(100) NULL COMMENT 'Control family/category (e.g., Access Control, Media Protection)';
+        ADD COLUMN category VARCHAR(100) NULL COMMENT 'Control family/category (e.g., Access Control, Media Protection)';
 
         -- NIST 800-171 Categories (based on numeric code like 3.1.x)
         UPDATE controls SET category = 'Access Control' WHERE framework = 'NIST800171' AND code LIKE '3.1.%';

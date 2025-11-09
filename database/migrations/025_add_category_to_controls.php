@@ -9,8 +9,23 @@
 
 return [
     'mysql' => "
-        ALTER TABLE controls
-        ADD COLUMN category VARCHAR(100) NULL COMMENT 'Control family/category (e.g., Access Control, Media Protection)';
+        -- Add category column if it doesn't exist
+        SET @dbname = DATABASE();
+        SET @tablename = 'controls';
+        SET @columnname = 'category';
+        SET @preparedStatement = (SELECT IF(
+            (
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = @dbname
+                AND TABLE_NAME = @tablename
+                AND COLUMN_NAME = @columnname
+            ) > 0,
+            'SELECT 1',
+            'ALTER TABLE controls ADD COLUMN category VARCHAR(100) NULL COMMENT ''Control family/category (e.g., Access Control, Media Protection)'''
+        ));
+        PREPARE alterIfNotExists FROM @preparedStatement;
+        EXECUTE alterIfNotExists;
+        DEALLOCATE PREPARE alterIfNotExists;
 
         -- NIST 800-171 Categories (based on numeric code like 3.1.x)
         UPDATE controls SET category = 'Access Control' WHERE framework = 'NIST800171' AND code LIKE '3.1.%';

@@ -10,9 +10,39 @@
 
 return [
     'mysql' => "
-        ALTER TABLE controls
-        ADD COLUMN sprs_score INT NULL COMMENT 'SPRS point value for this control (typically 1-5)',
-        ADD COLUMN partial_credit BOOLEAN DEFAULT 0 COMMENT 'Whether partial credit can be awarded';
+        -- Add sprs_score column if it doesn't exist
+        SET @dbname = DATABASE();
+        SET @tablename = 'controls';
+        SET @columnname = 'sprs_score';
+        SET @preparedStatement = (SELECT IF(
+            (
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = @dbname
+                AND TABLE_NAME = @tablename
+                AND COLUMN_NAME = @columnname
+            ) > 0,
+            'SELECT 1',
+            'ALTER TABLE controls ADD COLUMN sprs_score INT NULL COMMENT ''SPRS point value for this control (typically 1-5)'''
+        ));
+        PREPARE alterIfNotExists FROM @preparedStatement;
+        EXECUTE alterIfNotExists;
+        DEALLOCATE PREPARE alterIfNotExists;
+
+        -- Add partial_credit column if it doesn't exist
+        SET @columnname = 'partial_credit';
+        SET @preparedStatement = (SELECT IF(
+            (
+                SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = @dbname
+                AND TABLE_NAME = @tablename
+                AND COLUMN_NAME = @columnname
+            ) > 0,
+            'SELECT 1',
+            'ALTER TABLE controls ADD COLUMN partial_credit BOOLEAN DEFAULT 0 COMMENT ''Whether partial credit can be awarded'''
+        ));
+        PREPARE alterIfNotExists FROM @preparedStatement;
+        EXECUTE alterIfNotExists;
+        DEALLOCATE PREPARE alterIfNotExists;
 
         -- Update NIST 800-171 and CMMC controls to have default SPRS score of 3 (medium risk)
         UPDATE controls

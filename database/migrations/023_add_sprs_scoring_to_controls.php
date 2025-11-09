@@ -11,8 +11,8 @@
 return [
     'mysql' => "
         ALTER TABLE controls
-        ADD COLUMN sprs_score INT NULL COMMENT 'SPRS point value for this control (typically 1-5)',
-        ADD COLUMN partial_credit BOOLEAN DEFAULT 0 COMMENT 'Whether partial credit can be awarded';
+        ADD COLUMN IF NOT EXISTS sprs_score INT NULL COMMENT 'SPRS point value for this control (typically 1-5)',
+        ADD COLUMN IF NOT EXISTS partial_credit BOOLEAN DEFAULT 0 COMMENT 'Whether partial credit can be awarded';
 
         -- Update NIST 800-171 and CMMC controls to have default SPRS score of 3 (medium risk)
         UPDATE controls
@@ -87,8 +87,8 @@ return [
     ",
     'pgsql' => "
         ALTER TABLE controls
-        ADD COLUMN sprs_score INTEGER NULL,
-        ADD COLUMN partial_credit BOOLEAN DEFAULT FALSE;
+        ADD COLUMN IF NOT EXISTS sprs_score INTEGER NULL,
+        ADD COLUMN IF NOT EXISTS partial_credit BOOLEAN DEFAULT FALSE;
 
         COMMENT ON COLUMN controls.sprs_score IS 'SPRS point value for this control (typically 1-5)';
         COMMENT ON COLUMN controls.partial_credit IS 'Whether partial credit can be awarded';

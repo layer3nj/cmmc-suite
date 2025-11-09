@@ -50,9 +50,9 @@ ob_start();
                                     <?= $e(ucfirst($log['action'])) ?>
                                 </span>
                             </td>
-                            <td><?= $e($log['entity_type']) ?></td>
+                            <td><?= $e($log['entity_type'] ?? '-') ?></td>
                             <td><?= $e($log['entity_id'] ?? '-') ?></td>
-                            <td><?= $e($log['ip_addr']) ?></td>
+                            <td><?= $e($log['ip_addr'] ?? '-') ?></td>
                             <td>
                                 <?php if (!empty($log['details'])): ?>
                                     <button type="button" class="btn btn-sm btn-secondary" onclick="showDetails(<?= $e($log['id']) ?>)">View</button>

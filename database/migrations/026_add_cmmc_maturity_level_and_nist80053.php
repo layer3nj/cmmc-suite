@@ -18,7 +18,7 @@ return [
 
         SET @sql = IF(
             @col_exists = 0,
-            'ALTER TABLE clients ADD COLUMN cmmc_maturity_level ENUM(''Level 1'', ''Level 2'', ''Level 3'') DEFAULT NULL AFTER framework',
+            'ALTER TABLE clients ADD COLUMN cmmc_maturity_level ENUM(''Level 1'', ''Level 2'', ''Level 3'') DEFAULT NULL AFTER logo_path',
             'SELECT ''Column cmmc_maturity_level already exists'' AS message'
         );
 

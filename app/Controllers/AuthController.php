@@ -32,14 +32,12 @@ class AuthController
             return Response::redirect($request->baseUrl() . '/');
         }
 
-        $samlEnabled = $this->config->get('saml.enabled', false);
-
-        // Load settings for branding
+        // Load settings for branding and SAML
         $settingsService = new \App\Services\SettingsService($this->db);
         $settings = $settingsService->getAll();
 
         $content = View::render('auth/login', [
-            'saml_enabled' => $samlEnabled,
+            'saml_enabled' => ($settings['saml_enabled'] ?? '0') === '1',
             'base_url' => $request->baseUrl(),
             'app_name' => $settings['site_name'] ?? 'Layer3 | Trident Cyber OneComply',
             'app_logo' => $settings['logo_path'] ?? null,

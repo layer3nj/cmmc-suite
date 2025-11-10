@@ -25,57 +25,130 @@ class SamlController
 
     public function login(Request $request): Response
     {
-        if (!$this->config->get('saml.enabled', false)) {
+        Session::start();
+
+        // Load SAML settings from database
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
+        if (($settings['saml_enabled'] ?? '0') !== '1') {
+            Session::flash('error', 'SAML SSO is not enabled.');
             return Response::redirect($request->baseUrl() . '/login');
         }
 
-        // In production, this would initialize OneLogin SAML toolkit
-        // For now, redirect to IdP with basic SAML request
-        $idpUrl = $this->config->get('saml.idp_metadata_url');
-        $acsUrl = $this->config->get('saml.acs_url');
+        $idpSsoUrl = $settings['saml_idp_sso_url'] ?? '';
+        $entityId = $settings['saml_idp_entity_id'] ?? '';
+
+        if (empty($idpSsoUrl)) {
+            Session::flash('error', 'SAML IdP SSO URL is not configured. Please contact your administrator.');
+            return Response::redirect($request->baseUrl() . '/login');
+        }
 
         // Store SAML request ID in session
-        Session::start();
-        $requestId = bin2hex(random_bytes(16));
+        $requestId = 'id-' . bin2hex(random_bytes(16));
         Session::set('saml_request_id', $requestId);
 
-        // Build SAML request (simplified - production would use proper XML)
-        $samlRequest = base64_encode('<?xml version="1.0"?><samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="' . $requestId . '" Version="2.0" IssueInstant="' . gmdate('Y-m-d\TH:i:s\Z') . '" AssertionConsumerServiceURL="' . $acsUrl . '"></samlp:AuthnRequest>');
+        // Build SAML AuthnRequest (simplified - production should use OneLogin SAML toolkit)
+        $acsUrl = $request->baseUrl() . '/saml/acs';
+        $spEntityId = $request->baseUrl();
+        $issueInstant = gmdate('Y-m-d\TH:i:s\Z');
+
+        $samlRequest = '<?xml version="1.0" encoding="UTF-8"?>
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                    ID="' . $requestId . '"
+                    Version="2.0"
+                    IssueInstant="' . $issueInstant . '"
+                    Destination="' . htmlspecialchars($idpSsoUrl) . '"
+                    AssertionConsumerServiceURL="' . htmlspecialchars($acsUrl) . '"
+                    ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST">
+    <saml:Issuer>' . htmlspecialchars($spEntityId) . '</saml:Issuer>
+</samlp:AuthnRequest>';
+
+        $encodedRequest = base64_encode(gzdeflate($samlRequest));
 
         // Redirect to IdP
-        return Response::redirect($idpUrl . '?SAMLRequest=' . urlencode($samlRequest));
+        return Response::redirect($idpSsoUrl . '?SAMLRequest=' . urlencode($encodedRequest));
     }
 
     public function acs(Request $request): Response
     {
         Session::start();
 
-        if (!$this->config->get('saml.enabled', false)) {
+        // Load SAML settings from database
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
+        if (($settings['saml_enabled'] ?? '0') !== '1') {
             Session::flash('error', 'SAML SSO is not enabled.');
             return Response::redirect($request->baseUrl() . '/login');
         }
 
-        // In production, this would validate SAML response using OneLogin toolkit
-        // For now, we'll accept a simplified flow for demonstration
-
         $samlResponse = $request->post('SAMLResponse');
 
         if (empty($samlResponse)) {
-            Session::flash('error', 'Invalid SAML response.');
+            Session::flash('error', 'Invalid SAML response - no SAMLResponse received.');
             return Response::redirect($request->baseUrl() . '/login');
         }
 
-        // Decode and parse SAML response (simplified)
+        // Decode SAML response
         $decoded = base64_decode($samlResponse);
 
-        // Extract user attributes (in production, use proper XML parsing with signature validation)
-        // This is a placeholder - production must use OneLogin SAML toolkit
-        $email = $this->extractAttributeFromSaml($decoded, 'email');
-        $displayName = $this->extractAttributeFromSaml($decoded, 'displayName');
-        $groups = $this->extractAttributeFromSaml($decoded, 'groups');
+        if (!$decoded) {
+            Session::flash('error', 'Failed to decode SAML response.');
+            return Response::redirect($request->baseUrl() . '/login');
+        }
+
+        // Parse XML response
+        libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($decoded);
+
+        if ($xml === false) {
+            Session::flash('error', 'Invalid SAML XML response.');
+            return Response::redirect($request->baseUrl() . '/login');
+        }
+
+        // Register SAML namespaces
+        $xml->registerXPathNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+        $xml->registerXPathNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+
+        // Extract email from SAML attributes
+        $email = null;
+        $displayName = null;
+
+        // Try common email attribute names
+        $emailPaths = [
+            "//saml:Attribute[@Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']/saml:AttributeValue",
+            "//saml:Attribute[@Name='email']/saml:AttributeValue",
+            "//saml:Attribute[@Name='mail']/saml:AttributeValue",
+            "//saml:NameID"
+        ];
+
+        foreach ($emailPaths as $path) {
+            $result = $xml->xpath($path);
+            if ($result && count($result) > 0) {
+                $email = (string) $result[0];
+                break;
+            }
+        }
+
+        // Try common display name attribute names
+        $namePaths = [
+            "//saml:Attribute[@Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']/saml:AttributeValue",
+            "//saml:Attribute[@Name='displayName']/saml:AttributeValue",
+            "//saml:Attribute[@Name='name']/saml:AttributeValue"
+        ];
+
+        foreach ($namePaths as $path) {
+            $result = $xml->xpath($path);
+            if ($result && count($result) > 0) {
+                $displayName = (string) $result[0];
+                break;
+            }
+        }
 
         if (empty($email)) {
-            Session::flash('error', 'Email not provided in SAML assertion.');
+            Session::flash('error', 'Email not provided in SAML assertion. Please contact your administrator.');
             return Response::redirect($request->baseUrl() . '/login');
         }
 
@@ -84,12 +157,10 @@ class SamlController
 
         if (!$user) {
             // Create new user from SAML assertion
-            $role = $this->mapGroupsToRole($groups);
-
             $userId = $this->db->insert('users', [
                 'email' => $email,
                 'display_name' => $displayName ?: $email,
-                'role' => $role,
+                'role' => 'viewer', // Default role for new SAML users
                 'saml_subject' => $email,
                 'password_hash' => null, // SAML-only account
                 'created_at' => date('Y-m-d H:i:s'),
@@ -129,8 +200,8 @@ class SamlController
 
     public function metadata(Request $request): Response
     {
-        $entityId = $this->config->get('saml.entity_id', $request->baseUrl());
-        $acsUrl = $this->config->get('saml.acs_url', $request->baseUrl() . '/saml/acs');
+        $entityId = $request->baseUrl();
+        $acsUrl = $request->baseUrl() . '/saml/acs';
 
         $xml = '<?xml version="1.0"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="' . htmlspecialchars($entityId) . '">
@@ -140,32 +211,5 @@ class SamlController
 </md:EntityDescriptor>';
 
         return new Response($xml, 200, ['Content-Type' => 'application/xml']);
-    }
-
-    private function extractAttributeFromSaml(string $xml, string $attribute): ?string
-    {
-        // Simplified attribute extraction - production must use proper XML parsing
-        // with signature validation via OneLogin SAML toolkit
-
-        // This is a placeholder for demonstration
-        return null;
-    }
-
-    private function mapGroupsToRole(array $groups): string
-    {
-        // Map Azure AD groups to application roles
-        $groupMapping = $this->config->get('saml.group_mapping', [
-            'CMMC-Admins' => 'admin',
-            'CMMC-Auditors' => 'auditor',
-            'CMMC-Contributors' => 'contributor',
-        ]);
-
-        foreach ($groups as $group) {
-            if (isset($groupMapping[$group])) {
-                return $groupMapping[$group];
-            }
-        }
-
-        return 'viewer'; // Default role
     }
 }

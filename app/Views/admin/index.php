@@ -434,9 +434,13 @@ function closeEditModal() {
 
 // Submit edit user form
 function submitEditUser(buttonElement) {
+    console.log('submitEditUser called', buttonElement);
+
     const userId = document.getElementById('edit-user-id').value;
     const displayName = document.getElementById('edit-display-name').value;
     const role = document.getElementById('edit-role').value;
+
+    console.log('User data:', { userId, displayName, role });
 
     // Build client access data
     const checkboxes = document.querySelectorAll('.edit-client-checkbox:checked');
@@ -453,6 +457,8 @@ function submitEditUser(buttonElement) {
         });
     });
 
+    console.log('Client access data:', clientAccessData);
+
     // Create form data
     const formData = new FormData();
     formData.append('display_name', displayName);
@@ -460,31 +466,55 @@ function submitEditUser(buttonElement) {
     formData.append('client_access', JSON.stringify(clientAccessData));
     formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
+    console.log('FormData entries:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
+
     // Disable button
     buttonElement.disabled = true;
     buttonElement.textContent = 'Saving...';
 
-    fetch('<?= $url('admin/users/') ?>' + userId + '/update', {
+    const url = '<?= $url('admin/users/') ?>' + userId + '/update';
+    console.log('Fetching URL:', url);
+
+    fetch(url, {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('User updated successfully!', 'success');
-            closeEditModal();
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            showNotification(data.message || 'Failed to update user', 'error');
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        return response.text(); // Get as text first to see what we're getting
+    })
+    .then(text => {
+        console.log('Response text:', text);
+        try {
+            const data = JSON.parse(text);
+            console.log('Parsed JSON:', data);
+
+            if (data.success) {
+                showNotification('User updated successfully!', 'success');
+                closeEditModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Failed to update user', 'error');
+                buttonElement.disabled = false;
+                buttonElement.textContent = 'Save Changes';
+            }
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            console.error('Response was not JSON:', text);
+            showNotification('Server error: Invalid response format', 'error');
             buttonElement.disabled = false;
             buttonElement.textContent = 'Save Changes';
         }
     })
     .catch(error => {
-        console.error('Error updating user:', error);
-        showNotification('An error occurred. Please try again.', 'error');
+        console.error('Fetch error:', error);
+        showNotification('Network error: ' + error.message, 'error');
         buttonElement.disabled = false;
         buttonElement.textContent = 'Save Changes';
     });

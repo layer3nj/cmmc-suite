@@ -122,13 +122,14 @@ class AuthController
 
     private function performLogin(array $user, Request $request): void
     {
-        Session::regenerate();
-
-        // Set session data
+        // Set session data BEFORE regenerating to ensure it persists
         Session::set('user_id', $user['id']);
         Session::set('user_email', $user['email']);
         Session::set('user_name', $user['display_name']);
         Session::set('user_role', $user['role']);
+
+        // Regenerate session ID for security (after setting data)
+        Session::regenerate();
 
         // Update last login
         $this->db->update(

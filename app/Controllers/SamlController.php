@@ -213,11 +213,13 @@ class SamlController
         }
 
         // Log in the user
-        Session::regenerate();
         Session::set('user_id', $user['id']);
         Session::set('user_email', $user['email']);
         Session::set('user_name', $user['display_name']);
         Session::set('user_role', $user['role']);
+
+        // Regenerate session ID for security (after setting data)
+        Session::regenerate();
 
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Session created for user {$user['id']}, redirecting to dashboard\n", FILE_APPEND);
 
@@ -225,6 +227,9 @@ class SamlController
             'method' => 'saml',
             'email' => $user['email']
         ], $request->ip());
+
+        // Explicitly save session before redirect to ensure persistence
+        session_write_close();
 
         return Response::redirect($request->baseUrl() . '/');
     }

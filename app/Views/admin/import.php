@@ -161,6 +161,40 @@ ob_start();
 
 <div class="card" style="margin-top: 20px;">
     <div class="card-header">
+        <h3>Update Control Categories</h3>
+    </div>
+
+    <form action="<?= $url('admin/update-categories') ?>" method="POST" class="form-section">
+        <?= $csrf() ?>
+
+        <div class="form-group">
+            <p>Update control categories for all NIST 800-171 and CMMC controls to organize them by domain/family.</p>
+            <p><strong>Categories include:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 25px; columns: 2;">
+                <li>Access Control (AC)</li>
+                <li>Awareness and Training (AT)</li>
+                <li>Audit and Accountability (AU)</li>
+                <li>Configuration Management (CM)</li>
+                <li>Identification and Authentication (IA)</li>
+                <li>Incident Response (IR)</li>
+                <li>Maintenance (MA)</li>
+                <li>Media Protection (MP)</li>
+                <li>Personnel Security (PS)</li>
+                <li>Physical Protection (PE)</li>
+                <li>Risk Assessment (RA)</li>
+                <li>Security Assessment (CA)</li>
+                <li>System and Communications Protection (SC)</li>
+                <li>System and Information Integrity (SI)</li>
+            </ul>
+            <p><strong>Note:</strong> This will overwrite existing categories. Use this if migration 025 didn't set categories correctly.</p>
+        </div>
+
+        <button type="submit" class="btn btn-warning" onclick="return confirm('Update all control categories? This will overwrite current values.')">Update Categories</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
         <h3>Import Customers</h3>
     </div>
 

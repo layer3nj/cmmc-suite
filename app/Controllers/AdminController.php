@@ -880,4 +880,65 @@ class AdminController
 
         return Response::redirect($request->baseUrl() . '/admin/import');
     }
+
+    public function updateCategories(Request $request): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/admin/import');
+        }
+
+        try {
+            // NIST 800-171 Categories (based on numeric code like 3.1.x)
+            $this->db->query("UPDATE controls SET category = 'Access Control' WHERE framework = 'NIST800171' AND code LIKE '3.1.%'");
+            $this->db->query("UPDATE controls SET category = 'Awareness and Training' WHERE framework = 'NIST800171' AND code LIKE '3.2.%'");
+            $this->db->query("UPDATE controls SET category = 'Audit and Accountability' WHERE framework = 'NIST800171' AND code LIKE '3.3.%'");
+            $this->db->query("UPDATE controls SET category = 'Configuration Management' WHERE framework = 'NIST800171' AND code LIKE '3.4.%'");
+            $this->db->query("UPDATE controls SET category = 'Identification and Authentication' WHERE framework = 'NIST800171' AND code LIKE '3.5.%'");
+            $this->db->query("UPDATE controls SET category = 'Incident Response' WHERE framework = 'NIST800171' AND code LIKE '3.6.%'");
+            $this->db->query("UPDATE controls SET category = 'Maintenance' WHERE framework = 'NIST800171' AND code LIKE '3.7.%'");
+            $this->db->query("UPDATE controls SET category = 'Media Protection' WHERE framework = 'NIST800171' AND code LIKE '3.8.%'");
+            $this->db->query("UPDATE controls SET category = 'Personnel Security' WHERE framework = 'NIST800171' AND code LIKE '3.9.%'");
+            $this->db->query("UPDATE controls SET category = 'Physical Protection' WHERE framework = 'NIST800171' AND code LIKE '3.10.%'");
+            $this->db->query("UPDATE controls SET category = 'Risk Assessment' WHERE framework = 'NIST800171' AND code LIKE '3.11.%'");
+            $this->db->query("UPDATE controls SET category = 'Security Assessment' WHERE framework = 'NIST800171' AND code LIKE '3.12.%'");
+            $this->db->query("UPDATE controls SET category = 'System and Communications Protection' WHERE framework = 'NIST800171' AND code LIKE '3.13.%'");
+            $this->db->query("UPDATE controls SET category = 'System and Information Integrity' WHERE framework = 'NIST800171' AND code LIKE '3.14.%'");
+
+            // CMMC Categories (based on prefix like AC.%, MP.%, etc.)
+            $this->db->query("UPDATE controls SET category = 'Access Control' WHERE framework = 'CMMC' AND code LIKE 'AC.%'");
+            $this->db->query("UPDATE controls SET category = 'Awareness and Training' WHERE framework = 'CMMC' AND code LIKE 'AT.%'");
+            $this->db->query("UPDATE controls SET category = 'Audit and Accountability' WHERE framework = 'CMMC' AND code LIKE 'AU.%'");
+            $this->db->query("UPDATE controls SET category = 'Configuration Management' WHERE framework = 'CMMC' AND code LIKE 'CM.%'");
+            $this->db->query("UPDATE controls SET category = 'Identification and Authentication' WHERE framework = 'CMMC' AND code LIKE 'IA.%'");
+            $this->db->query("UPDATE controls SET category = 'Incident Response' WHERE framework = 'CMMC' AND code LIKE 'IR.%'");
+            $this->db->query("UPDATE controls SET category = 'Maintenance' WHERE framework = 'CMMC' AND code LIKE 'MA.%'");
+            $this->db->query("UPDATE controls SET category = 'Media Protection' WHERE framework = 'CMMC' AND code LIKE 'MP.%'");
+            $this->db->query("UPDATE controls SET category = 'Personnel Security' WHERE framework = 'CMMC' AND code LIKE 'PS.%'");
+            $this->db->query("UPDATE controls SET category = 'Physical Protection' WHERE framework = 'CMMC' AND code LIKE 'PE.%'");
+            $this->db->query("UPDATE controls SET category = 'Risk Assessment' WHERE framework = 'CMMC' AND code LIKE 'RA.%'");
+            $this->db->query("UPDATE controls SET category = 'Security Assessment' WHERE framework = 'CMMC' AND code LIKE 'CA.%'");
+            $this->db->query("UPDATE controls SET category = 'System and Communications Protection' WHERE framework = 'CMMC' AND code LIKE 'SC.%'");
+            $this->db->query("UPDATE controls SET category = 'System and Information Integrity' WHERE framework = 'CMMC' AND code LIKE 'SI.%'");
+
+            // Set remaining to General
+            $this->db->query("UPDATE controls SET category = 'General' WHERE category IS NULL");
+
+            Session::flash('success', 'Control categories updated successfully for both NIST 800-171 and CMMC!');
+            AuditLogger::log('update_categories', 'controls', null, null, $request->ip());
+
+        } catch (\Exception $e) {
+            Session::flash('error', 'Failed to update categories: ' . $e->getMessage());
+        }
+
+        return Response::redirect($request->baseUrl() . '/admin/import');
+    }
 }

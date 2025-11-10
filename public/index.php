@@ -27,7 +27,7 @@ App\Core\Autoloader::register();
 // Start session with security settings
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? '1' : '0');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax'); // Lax allows SAML/SSO redirects while still protecting against CSRF
 ini_set('session.use_strict_mode', '1');
 ini_set('session.save_path', STORAGE_PATH . '/sessions');
 

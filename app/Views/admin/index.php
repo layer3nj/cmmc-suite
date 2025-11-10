@@ -116,7 +116,7 @@ ob_start();
                 </div>
                 <div class="form-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="submitEditUser()">Save Changes</button>
+                    <button type="button" class="btn btn-primary" id="edit-submit-btn" onclick="submitEditUser(this)">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -433,7 +433,7 @@ function closeEditModal() {
 }
 
 // Submit edit user form
-function submitEditUser() {
+function submitEditUser(buttonElement) {
     const userId = document.getElementById('edit-user-id').value;
     const displayName = document.getElementById('edit-display-name').value;
     const role = document.getElementById('edit-role').value;
@@ -460,10 +460,9 @@ function submitEditUser() {
     formData.append('client_access', JSON.stringify(clientAccessData));
     formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
-    // Submit
-    const submitBtn = event.target;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving...';
+    // Disable button
+    buttonElement.disabled = true;
+    buttonElement.textContent = 'Saving...';
 
     fetch('<?= $url('admin/users/') ?>' + userId + '/update', {
         method: 'POST',
@@ -479,14 +478,15 @@ function submitEditUser() {
             }, 1000);
         } else {
             showNotification(data.message || 'Failed to update user', 'error');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Save Changes';
+            buttonElement.disabled = false;
+            buttonElement.textContent = 'Save Changes';
         }
     })
     .catch(error => {
+        console.error('Error updating user:', error);
         showNotification('An error occurred. Please try again.', 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Save Changes';
+        buttonElement.disabled = false;
+        buttonElement.textContent = 'Save Changes';
     });
 }
 </script>

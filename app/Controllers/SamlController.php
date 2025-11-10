@@ -222,14 +222,13 @@ class SamlController
         Session::regenerate();
 
         file_put_contents($logFile, date('Y-m-d H:i:s') . " - Session created for user {$user['id']}, redirecting to dashboard\n", FILE_APPEND);
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Session ID after login: " . session_id() . "\n", FILE_APPEND);
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Session data: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
 
         AuditLogger::log('login', 'user', $user['id'], [
             'method' => 'saml',
             'email' => $user['email']
         ], $request->ip());
-
-        // Explicitly save session before redirect to ensure persistence
-        session_write_close();
 
         return Response::redirect($request->baseUrl() . '/');
     }

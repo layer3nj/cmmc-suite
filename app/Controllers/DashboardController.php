@@ -24,11 +24,20 @@ class DashboardController
 
     public function index(Request $request): Response
     {
+        // Debug logging
+        $logFile = BASE_PATH . '/storage/logs/saml_debug.log';
+        Session::start();
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Dashboard loading, session user_id: " . (Session::has('user_id') ? Session::get('user_id') : 'NONE') . "\n", FILE_APPEND);
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Session ID: " . session_id() . "\n", FILE_APPEND);
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - All session data: " . print_r($_SESSION, true) . "\n", FILE_APPEND);
+
         // Check authentication
         $authCheck = AuthMiddleware::handle($request);
-        if ($authCheck) return $authCheck;
+        if ($authCheck) {
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " - Auth check failed, redirecting to login\n", FILE_APPEND);
+            return $authCheck;
+        }
 
-        Session::start();
         $currentCustomerId = Session::get('current_customer_id');
 
         // Get metrics

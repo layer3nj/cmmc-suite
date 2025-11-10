@@ -86,6 +86,8 @@ ob_start();
                 <div style="margin-bottom: 8px;">
                     <label style="display: flex; align-items: center; font-weight: normal;">
                         <input type="checkbox" name="frameworks[]" value="<?= $e($framework) ?>"
+                               class="framework-checkbox"
+                               data-framework="<?= $e($framework) ?>"
                                <?= in_array($framework, $currentFrameworks) ? 'checked' : '' ?>
                                style="margin-right: 8px;">
                         <span><?= $e($framework) ?></span>
@@ -100,7 +102,34 @@ ob_start();
                     Check the frameworks that apply and select one as the primary framework for scoring.
                 </small>
             </div>
+
+            <div id="cmmc-maturity-level" class="form-group" style="display: <?= in_array('CMMC', $currentFrameworks) ? 'block' : 'none' ?>; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <label>CMMC Maturity Level *</label>
+                <small style="display: block; margin-bottom: 10px;">Select the target CMMC maturity level for this client</small>
+                <select name="cmmc_maturity_level" class="form-control">
+                    <option value="">-- Select Level --</option>
+                    <option value="Level 1" <?= ($client['cmmc_maturity_level'] ?? '') === 'Level 1' ? 'selected' : '' ?>>Level 1 - Foundational (17 practices)</option>
+                    <option value="Level 2" <?= ($client['cmmc_maturity_level'] ?? '') === 'Level 2' ? 'selected' : '' ?>>Level 2 - Advanced (110 practices)</option>
+                    <option value="Level 3" <?= ($client['cmmc_maturity_level'] ?? '') === 'Level 3' ? 'selected' : '' ?>>Level 3 - Expert (110+ practices)</option>
+                </select>
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    The maturity level determines which controls are applicable to this client.
+                </small>
+            </div>
         </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cmmcCheckbox = document.querySelector('.framework-checkbox[data-framework="CMMC"]');
+            const maturityLevelDiv = document.getElementById('cmmc-maturity-level');
+
+            if (cmmcCheckbox) {
+                cmmcCheckbox.addEventListener('change', function() {
+                    maturityLevelDiv.style.display = this.checked ? 'block' : 'none';
+                });
+            }
+        });
+        </script>
 
         <div class="form-group">
             <label>

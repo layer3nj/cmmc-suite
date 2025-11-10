@@ -73,6 +73,12 @@ class DashboardController
             ];
         }
 
+        // Get client info including CMMC maturity level
+        $client = $this->db->fetchOne(
+            "SELECT * FROM clients WHERE id = ?",
+            [$customerId]
+        );
+
         // Get latest published assessment
         $assessment = $this->db->fetchOne(
             "SELECT id FROM assessments
@@ -81,7 +87,17 @@ class DashboardController
             [$customerId]
         );
 
+        // Determine which maturity levels to count based on client's target level
+        $maxLevel = $this->getMaxLevelFromMaturityLevel($client['cmmc_maturity_level'] ?? null);
+
         if (!$assessment) {
+            // Count controls based on maturity level
+            $totalControls = $this->db->fetchColumn(
+                "SELECT COUNT(*) FROM controls
+                 WHERE framework = 'CMMC' AND ml_level <= ?",
+                [$maxLevel]
+            );
+
             return [
                 'current_sprs' => -203,
                 'projected_sprs' => -203,
@@ -89,7 +105,7 @@ class DashboardController
                 'ml2_percent' => 0,
                 'ml3_percent' => 0,
                 'open_poam' => 0,
-                'total_controls' => $this->db->fetchColumn("SELECT COUNT(*) FROM controls WHERE framework = 'CMMC'"),
+                'total_controls' => $totalControls,
             ];
         }
 
@@ -98,7 +114,7 @@ class DashboardController
         $scores = $sprsCalculator->calculate($assessment['id']);
 
         // Calculate ML completion percentages
-        $mlStats = $this->getMLCompletionStats($assessment['id']);
+        $mlStats = $this->getMLCompletionStats($assessment['id'], $maxLevel);
 
         // Get open POA&M count
         $openPoam = $this->db->fetchColumn(
@@ -107,8 +123,12 @@ class DashboardController
             [$customerId]
         );
 
-        // Get total CMMC controls
-        $totalControls = $this->db->fetchColumn("SELECT COUNT(*) FROM controls WHERE framework = 'CMMC'");
+        // Get total CMMC controls for this maturity level
+        $totalControls = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM controls
+             WHERE framework = 'CMMC' AND ml_level <= ?",
+            [$maxLevel]
+        );
 
         return [
             'current_sprs' => $scores['current_score'],
@@ -121,11 +141,32 @@ class DashboardController
         ];
     }
 
-    private function getMLCompletionStats(int $assessmentId): array
+    /**
+     * Convert CMMC maturity level string to numeric max level
+     */
+    private function getMaxLevelFromMaturityLevel(?string $maturityLevel): int
+    {
+        if (empty($maturityLevel)) {
+            return 3; // Default to all levels if not specified
+        }
+
+        switch ($maturityLevel) {
+            case 'Level 1':
+                return 1;
+            case 'Level 2':
+                return 2;
+            case 'Level 3':
+                return 3;
+            default:
+                return 3;
+        }
+    }
+
+    private function getMLCompletionStats(int $assessmentId, int $maxLevel = 3): array
     {
         $stats = ['ml1_percent' => 0, 'ml2_percent' => 0, 'ml3_percent' => 0];
 
-        for ($level = 1; $level <= 3; $level++) {
+        for ($level = 1; $level <= $maxLevel; $level++) {
             $total = $this->db->fetchColumn(
                 "SELECT COUNT(*) FROM controls WHERE framework = 'CMMC' AND ml_level = ?",
                 [$level]

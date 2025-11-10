@@ -48,7 +48,7 @@ class ClientController
         if ($roleCheck) return $roleCheck;
 
         // Get available frameworks
-        $frameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        $frameworks = ['CMMC', 'NIST800171', 'NIST80053', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
 
         $content = View::render('clients/create', [
             'frameworks' => $frameworks,
@@ -114,6 +114,12 @@ class ClientController
 
         if ($logoPath !== null) {
             $clientData['logo_path'] = $logoPath;
+        }
+
+        // Add CMMC maturity level if provided
+        $cmmcMaturityLevel = $request->post('cmmc_maturity_level');
+        if (!empty($cmmcMaturityLevel)) {
+            $clientData['cmmc_maturity_level'] = $cmmcMaturityLevel;
         }
 
         $clientId = $this->db->insert('clients', $clientData);
@@ -232,7 +238,7 @@ class ClientController
         );
 
         // Get available frameworks
-        $frameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        $frameworks = ['CMMC', 'NIST800171', 'NIST80053', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
 
         $content = View::render('clients/edit', [
             'client' => $client,
@@ -302,6 +308,15 @@ class ClientController
 
         if ($logoPath !== null) {
             $data['logo_path'] = $logoPath;
+        }
+
+        // Update CMMC maturity level
+        $cmmcMaturityLevel = $request->post('cmmc_maturity_level');
+        if (!empty($cmmcMaturityLevel)) {
+            $data['cmmc_maturity_level'] = $cmmcMaturityLevel;
+        } else {
+            // If empty, set to NULL (in case CMMC was unchecked)
+            $data['cmmc_maturity_level'] = null;
         }
 
         $this->db->update('clients', $data, 'id = :id', [':id' => $id]);

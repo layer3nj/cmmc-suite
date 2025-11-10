@@ -1,11 +1,13 @@
 <?php
 
 /**
- * Complete NIST SP 800-171 R2 Controls (All 110 practices)
+ * Complete NIST SP 800-171 R2 Controls (All 110 requirements)
  * This replaces partial seed files with the complete standard
  *
  * Source: NIST Special Publication 800-171 Revision 2
  * Protecting Controlled Unclassified Information in Nonfederal Systems and Organizations
+ *
+ * Note: Control 3.13.16 was added in Rev 3 and should NOT be included in Rev 2
  */
 
 return function($db) {
@@ -122,7 +124,7 @@ return function($db) {
         ['framework' => 'NIST800171', 'code' => '3.12.3', 'title' => 'Monitor security controls on an ongoing basis', 'description' => 'Monitor security controls on an ongoing basis to ensure the continued effectiveness of the controls.'],
         ['framework' => 'NIST800171', 'code' => '3.12.4', 'title' => 'Develop, document, and periodically update system security plans', 'description' => 'Develop, document, and periodically update system security plans that describe system boundaries, system environments of operation, how security requirements are implemented, and the relationships with or connections to other systems.'],
 
-        // 3.13 SYSTEM AND COMMUNICATIONS PROTECTION (16 controls)
+        // 3.13 SYSTEM AND COMMUNICATIONS PROTECTION (15 controls)
         ['framework' => 'NIST800171', 'code' => '3.13.1', 'title' => 'Monitor and control communications at external system boundaries', 'description' => 'Monitor, control, and protect organizational communications (i.e., information transmitted or received by organizational information systems) at the external boundaries and key internal boundaries of the information systems.'],
         ['framework' => 'NIST800171', 'code' => '3.13.2', 'title' => 'Employ architectural designs promoting effective security', 'description' => 'Employ architectural designs, software development techniques, and systems engineering principles that promote effective information security within organizational information systems.'],
         ['framework' => 'NIST800171', 'code' => '3.13.3', 'title' => 'Separate user functionality from system management functionality', 'description' => 'Separate user functionality from information system management functionality.'],
@@ -138,7 +140,6 @@ return function($db) {
         ['framework' => 'NIST800171', 'code' => '3.13.13', 'title' => 'Control and monitor use of mobile code', 'description' => 'Control and monitor the use of mobile code.'],
         ['framework' => 'NIST800171', 'code' => '3.13.14', 'title' => 'Control and monitor use of Voice over Internet Protocol', 'description' => 'Control and monitor the use of Voice over Internet Protocol (VoIP) technologies.'],
         ['framework' => 'NIST800171', 'code' => '3.13.15', 'title' => 'Protect authenticity of communications sessions', 'description' => 'Protect the authenticity of communications sessions.'],
-        ['framework' => 'NIST800171', 'code' => '3.13.16', 'title' => 'Protect confidentiality of CUI at rest', 'description' => 'Protect the confidentiality of CUI at rest.'],
 
         // 3.14 SYSTEM AND INFORMATION INTEGRITY (7 controls)
         ['framework' => 'NIST800171', 'code' => '3.14.1', 'title' => 'Identify, report, and correct system flaws in a timely manner', 'description' => 'Identify, report, and correct information and information system flaws in a timely manner.'],

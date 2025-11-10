@@ -41,9 +41,37 @@ class ControlController
         $framework = strtoupper($framework);
 
         // Support all compliance frameworks
-        $validFrameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        $validFrameworks = ['CMMC', 'NIST800171', 'NIST80053', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
         if (!in_array($framework, $validFrameworks)) {
             return new Response('Invalid framework', 404);
+        }
+
+        // Get current client's maturity level setting
+        Session::start();
+        $currentCustomerId = Session::get('current_customer_id');
+        $clientMaturityLevel = null;
+        $maxMaturityLevel = 3;
+
+        if ($currentCustomerId && $framework === 'CMMC') {
+            $client = $this->db->fetchOne(
+                "SELECT cmmc_maturity_level FROM clients WHERE id = ?",
+                [$currentCustomerId]
+            );
+            if ($client && !empty($client['cmmc_maturity_level'])) {
+                $clientMaturityLevel = $client['cmmc_maturity_level'];
+                // Convert to numeric for filtering
+                switch ($clientMaturityLevel) {
+                    case 'Level 1':
+                        $maxMaturityLevel = 1;
+                        break;
+                    case 'Level 2':
+                        $maxMaturityLevel = 2;
+                        break;
+                    case 'Level 3':
+                        $maxMaturityLevel = 3;
+                        break;
+                }
+            }
         }
 
         // Get filters
@@ -56,17 +84,25 @@ class ControlController
         $sql = "SELECT * FROM controls WHERE framework = ?";
         $params = [$framework];
 
+        // Apply maturity level filtering for CMMC
+        if ($framework === 'CMMC') {
+            if (!empty($mlLevel)) {
+                // User has selected a specific level via filter
+                $sql .= " AND ml_level = ?";
+                $params[] = $mlLevel;
+            } elseif (!empty($clientMaturityLevel)) {
+                // Filter by client's max maturity level (show all controls up to that level)
+                $sql .= " AND ml_level <= ?";
+                $params[] = $maxMaturityLevel;
+            }
+        }
+
         if (!empty($search)) {
             $sql .= " AND (code LIKE ? OR title LIKE ? OR description LIKE ?)";
             $searchTerm = "%$search%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
-        }
-
-        if (!empty($mlLevel) && $framework === 'CMMC') {
-            $sql .= " AND ml_level = ?";
-            $params[] = $mlLevel;
         }
 
         if (!empty($category)) {
@@ -117,6 +153,7 @@ class ControlController
             'ml_counts' => $mlCounts,
             'category_counts' => $categoryCounts,
             'category_abbreviations' => $categoryAbbreviations,
+            'client_maturity_level' => $clientMaturityLevel,
             'filters' => [
                 'search' => $search,
                 'ml_level' => $mlLevel,

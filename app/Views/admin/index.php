@@ -85,11 +85,49 @@ ob_start();
         </form>
     </div>
 
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 8px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Edit User</h3>
+                <button onclick="closeEditModal()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: #888;">&times;</button>
+            </div>
+            <form id="edit-user-form" style="padding: 20px;">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="edit-display-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="edit-role" class="form-control" required>
+                        <option value="viewer">Viewer (Read-only)</option>
+                        <option value="contributor">Contributor (Can edit)</option>
+                        <option value="auditor">Auditor (Full access, no delete)</option>
+                        <option value="admin">Administrator (Full access)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><strong>Client Access</strong></label>
+                    <small style="display: block; margin-bottom: 10px;">Select which clients this user can access. Leave all unchecked for access to all clients.</small>
+                    <div id="edit-client-access-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 15px; border-radius: 4px; background: #f9fafb;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditUser()">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <table class="data-table">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Auth Type</th>
                 <th>Role</th>
                 <th>Client Access</th>
                 <th>Last Login</th>
@@ -99,9 +137,16 @@ ob_start();
         </thead>
         <tbody>
             <?php foreach ($users as $user): ?>
-            <tr>
+            <tr id="user-row-<?= $user['id'] ?>">
                 <td><strong><?= $e($user['display_name']) ?></strong></td>
                 <td><?= $e($user['email']) ?></td>
+                <td>
+                    <?php if (empty($user['password_hash'])): ?>
+                        <span class="badge badge-primary" title="SAML/SSO User">SAML</span>
+                    <?php else: ?>
+                        <span class="badge badge-secondary" title="Local Password User">Local</span>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <?php if ($user['role'] === 'admin'): ?>
                         <span class="badge badge-danger">Admin</span>
@@ -131,6 +176,7 @@ ob_start();
                 <td><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
                 <td>
                     <?php if ($user['id'] !== $current_user_id): ?>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="editUser(<?= $user['id'] ?>, '<?= $e($user['display_name']) ?>', '<?= $e($user['role']) ?>', <?= htmlspecialchars(json_encode($user['client_access'] ?? []), ENT_QUOTES, 'UTF-8') ?>)">Edit</button>
                         <form action="<?= $url('admin/users/' . $user['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Delete this user?');">
                             <?= $csrf() ?>
                             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
@@ -328,6 +374,119 @@ function submitUserForm() {
         showNotification('An error occurred. Please try again.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create User';
+    });
+}
+
+// Store clients data for edit modal
+const clientsData = <?= json_encode($clients) ?>;
+
+// Edit user
+function editUser(userId, displayName, role, clientAccess) {
+    document.getElementById('edit-user-id').value = userId;
+    document.getElementById('edit-display-name').value = displayName;
+    document.getElementById('edit-role').value = role;
+
+    // Build client access checkboxes
+    const clientList = document.getElementById('edit-client-access-list');
+    clientList.innerHTML = '';
+
+    if (clientsData.length === 0) {
+        clientList.innerHTML = '<p style="color: #888;">No clients available yet.</p>';
+    } else {
+        clientsData.forEach(client => {
+            const access = clientAccess.find(a => a.client_id == client.id);
+            const isChecked = access ? true : false;
+            const accessLevel = access ? access.access_level : 'read-only';
+
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; align-items: center; margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px;';
+            div.innerHTML = `
+                <label style="flex: 1; margin: 0; display: flex; align-items: center;">
+                    <input type="checkbox" class="edit-client-checkbox" value="${client.id}" ${isChecked ? 'checked' : ''} style="margin-right: 10px;">
+                    <strong>${client.name}</strong>
+                </label>
+                <select class="edit-client-access-level form-control" data-client-id="${client.id}" ${!isChecked ? 'disabled' : ''} style="width: 150px;">
+                    <option value="read-only" ${accessLevel === 'read-only' ? 'selected' : ''}>Read-Only</option>
+                    <option value="read-write" ${accessLevel === 'read-write' ? 'selected' : ''}>Read-Write</option>
+                </select>
+            `;
+            clientList.appendChild(div);
+        });
+
+        // Add event listeners to checkboxes
+        document.querySelectorAll('.edit-client-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const clientId = this.value;
+                const accessLevelSelect = document.querySelector(`.edit-client-access-level[data-client-id="${clientId}"]`);
+                accessLevelSelect.disabled = !this.checked;
+            });
+        });
+    }
+
+    // Show modal
+    document.getElementById('edit-user-modal').style.display = 'flex';
+}
+
+// Close edit modal
+function closeEditModal() {
+    document.getElementById('edit-user-modal').style.display = 'none';
+}
+
+// Submit edit user form
+function submitEditUser() {
+    const userId = document.getElementById('edit-user-id').value;
+    const displayName = document.getElementById('edit-display-name').value;
+    const role = document.getElementById('edit-role').value;
+
+    // Build client access data
+    const checkboxes = document.querySelectorAll('.edit-client-checkbox:checked');
+    const clientAccessData = [];
+
+    checkboxes.forEach(checkbox => {
+        const clientId = checkbox.value;
+        const accessLevelSelect = document.querySelector(`.edit-client-access-level[data-client-id="${clientId}"]`);
+        const accessLevel = accessLevelSelect.value;
+
+        clientAccessData.push({
+            client_id: parseInt(clientId),
+            access_level: accessLevel
+        });
+    });
+
+    // Create form data
+    const formData = new FormData();
+    formData.append('display_name', displayName);
+    formData.append('role', role);
+    formData.append('client_access', JSON.stringify(clientAccessData));
+    formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+    // Submit
+    const submitBtn = event.target;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    fetch('<?= $url('admin/users/') ?>' + userId + '/update', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('User updated successfully!', 'success');
+            closeEditModal();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Failed to update user', 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Changes';
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred. Please try again.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Changes';
     });
 }
 </script>

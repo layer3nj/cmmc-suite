@@ -72,12 +72,16 @@ class AdminController
             'total_poam' => $this->db->fetchColumn("SELECT COUNT(*) FROM poam_items"),
         ];
 
+        // Get SAML status from database settings
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
         $content = View::render('admin/index', [
             'users' => $users,
             'clients' => $clients,
             'stats' => $stats,
             'db_driver' => $this->db->getDriver(),
-            'saml_enabled' => $config->get('saml.enabled', false),
+            'saml_enabled' => ($settings['saml_enabled'] ?? '0') === '1',
             'current_user_id' => $currentUserId,
         ]);
 
@@ -283,6 +287,82 @@ class AdminController
         AuditLogger::log('delete', 'user', $id, null, $request->ip());
 
         return Response::json(['success' => true]);
+    }
+
+    public function updateUser(Request $request, string $id): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+        }
+
+        $displayName = $request->post('display_name');
+        $role = $request->post('role');
+        $clientAccessJson = $request->post('client_access');
+
+        // Validate required fields
+        if (empty($displayName) || empty($role)) {
+            return Response::json(['success' => false, 'message' => 'Display name and role are required']);
+        }
+
+        // Validate role
+        $validRoles = ['viewer', 'contributor', 'auditor', 'admin'];
+        if (!in_array($role, $validRoles)) {
+            return Response::json(['success' => false, 'message' => 'Invalid role selected']);
+        }
+
+        try {
+            // Update user
+            $this->db->update('users', [
+                'display_name' => $displayName,
+                'role' => $role,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ], 'id = :id', [':id' => $id]);
+
+            // Update client access
+            // First, delete existing access
+            try {
+                $this->db->delete('user_client_access', 'user_id = :user_id', [':user_id' => $id]);
+            } catch (\Exception $e) {
+                // Table might not exist yet
+            }
+
+            // Then, insert new access if provided
+            if (!empty($clientAccessJson)) {
+                $clientAccess = json_decode($clientAccessJson, true);
+                if (is_array($clientAccess) && !empty($clientAccess)) {
+                    foreach ($clientAccess as $access) {
+                        try {
+                            $this->db->insert('user_client_access', [
+                                'user_id' => $id,
+                                'client_id' => $access['client_id'],
+                                'access_level' => $access['access_level'],
+                                'created_at' => date('Y-m-d H:i:s'),
+                            ]);
+                        } catch (\Exception $e) {
+                            // Skip if table doesn't exist
+                        }
+                    }
+                }
+            }
+
+            AuditLogger::log('update', 'user', $id, [
+                'display_name' => $displayName,
+                'role' => $role,
+                'client_access_count' => $clientAccess ? count($clientAccess) : 0,
+            ], $request->ip());
+
+            return Response::json(['success' => true, 'message' => 'User updated successfully']);
+        } catch (\Exception $e) {
+            return Response::json(['success' => false, 'message' => 'Failed to update user: ' . $e->getMessage()]);
+        }
     }
 
     public function settings(Request $request): Response

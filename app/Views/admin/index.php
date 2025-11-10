@@ -93,6 +93,7 @@ ob_start();
                 <button onclick="closeEditModal()" style="border: none; background: none; font-size: 24px; cursor: pointer; color: #888;">&times;</button>
             </div>
             <form id="edit-user-form" style="padding: 20px;">
+                <?= $csrf() ?>
                 <input type="hidden" id="edit-user-id">
                 <div class="form-group">
                     <label>Display Name</label>
@@ -464,7 +465,14 @@ function submitEditUser(buttonElement) {
     formData.append('display_name', displayName);
     formData.append('role', role);
     formData.append('client_access', JSON.stringify(clientAccessData));
-    formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+    // Get CSRF token from the edit form
+    const csrfToken = document.querySelector('#edit-user-form input[name="csrf_token"]');
+    if (csrfToken) {
+        formData.append('csrf_token', csrfToken.value);
+    } else {
+        console.error('CSRF token not found in edit form');
+    }
 
     console.log('FormData entries:');
     for (let [key, value] of formData.entries()) {

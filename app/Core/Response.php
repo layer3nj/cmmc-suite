@@ -58,6 +58,11 @@ class Response
 
     public static function redirect(string $url, int $statusCode = 302): self
     {
+        // Ensure session is written before exit() to prevent data loss
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         $response = new self('', $statusCode, ['Location' => $url]);
         $response->send();
         exit;

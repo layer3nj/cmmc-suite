@@ -467,9 +467,9 @@ function submitEditUser(buttonElement) {
     formData.append('client_access', JSON.stringify(clientAccessData));
 
     // Get CSRF token from the edit form
-    const csrfToken = document.querySelector('#edit-user-form input[name="csrf_token"]');
+    const csrfToken = document.querySelector('#edit-user-form input[name="_csrf_token"]');
     if (csrfToken) {
-        formData.append('csrf_token', csrfToken.value);
+        formData.append('_csrf_token', csrfToken.value);
     } else {
         console.error('CSRF token not found in edit form');
     }

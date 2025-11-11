@@ -494,6 +494,7 @@ class AdminController
             BASE_PATH . '/database/seeds/006_additional_frameworks.php',
             BASE_PATH . '/database/seeds/007_enhanced_frameworks.php',
             BASE_PATH . '/database/seeds/008_complete_nist_800_171.php',
+            BASE_PATH . '/database/seeds/009_seed_nist_800_53.php',
         ];
 
         $totalInserted = 0;

@@ -114,6 +114,11 @@ class ControlController
 
         $controls = $this->db->fetchAll($sql, $params);
 
+        // Apply natural sorting to handle numeric portions correctly (e.g., 3.1, 3.2... 3.9, 3.10)
+        usort($controls, function($a, $b) {
+            return strnatcmp($a['code'], $b['code']);
+        });
+
         // Get control counts by ML level (for CMMC)
         $mlCounts = [];
         if ($framework === 'CMMC') {
@@ -288,7 +293,7 @@ class ControlController
         $framework = strtoupper($framework);
 
         // Support all compliance frameworks
-        $validFrameworks = ['CMMC', 'NIST800171', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
+        $validFrameworks = ['CMMC', 'NIST800171', 'NIST80053', 'STIG', 'HIPAA', 'FTC-SAFEGUARDS', 'PCI-DSS', 'SOC2', 'ISO27001'];
         if (!in_array($framework, $validFrameworks)) {
             return new Response('Invalid framework', 404);
         }
@@ -299,10 +304,16 @@ class ControlController
             [$framework]
         );
 
+        // Apply natural sorting to handle numeric portions correctly (e.g., 3.1, 3.2... 3.9, 3.10)
+        usort($controls, function($a, $b) {
+            return strnatcmp($a['code'], $b['code']);
+        });
+
         // Get framework display name
         $frameworkNames = [
             'CMMC' => 'CMMC 2.0 - Cybersecurity Maturity Model Certification',
             'NIST800171' => 'NIST SP 800-171 Rev 2',
+            'NIST80053' => 'NIST SP 800-53 Rev 5',
             'STIG' => 'DISA STIG - Security Technical Implementation Guide',
             'HIPAA' => 'HIPAA Security Rule',
             'FTC-SAFEGUARDS' => 'FTC Safeguards Rule',

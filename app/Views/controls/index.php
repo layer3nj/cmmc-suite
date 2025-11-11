@@ -17,6 +17,9 @@ ob_start();
     <a href="<?= $url('controls/nist800171') ?>" class="tab <?= $framework === 'NIST800171' ? 'active' : '' ?>">
         NIST 800-171
     </a>
+    <a href="<?= $url('controls/nist80053') ?>" class="tab <?= $framework === 'NIST80053' ? 'active' : '' ?>">
+        NIST 800-53
+    </a>
     <a href="<?= $url('controls/stig') ?>" class="tab <?= $framework === 'STIG' ? 'active' : '' ?>">
         DISA STIG
     </a>
@@ -105,6 +108,7 @@ ob_start();
     $frameworkNames = [
         'CMMC' => 'CMMC 2.0',
         'NIST800171' => 'NIST SP 800-171',
+        'NIST80053' => 'NIST SP 800-53',
         'STIG' => 'DISA STIG',
         'HIPAA' => 'HIPAA Security Rule',
         'FTC-SAFEGUARDS' => 'FTC Safeguards Rule',

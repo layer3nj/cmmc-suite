@@ -81,6 +81,7 @@ ob_start();
             <ul style="margin: 10px 0; padding-left: 25px;">
                 <li>CMMC 2.0 (~110 controls)</li>
                 <li>NIST SP 800-171 Rev 2 (~110 controls)</li>
+                <li>NIST SP 800-53 Rev 5 (~180 controls)</li>
                 <li>DISA STIG (~50 controls)</li>
                 <li>HIPAA Security Rule (~52 controls)</li>
                 <li>FTC Safeguards Rule (~15 controls)</li>
@@ -88,7 +89,7 @@ ob_start();
                 <li>SOC 2 Trust Services (~45 controls)</li>
                 <li>ISO/IEC 27001:2022 (~50 controls)</li>
             </ul>
-            <p><strong>Total: ~484 controls across all frameworks</strong></p>
+            <p><strong>Total: ~664 controls across all frameworks</strong></p>
             <p><strong>Note:</strong> This is safe to run multiple times. Existing controls will not be duplicated.</p>
         </div>
 

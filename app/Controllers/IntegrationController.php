@@ -85,7 +85,7 @@ class IntegrationController
                 'api_secret' => $apiSecret,
                 'enabled' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ], 'provider = :provider', [':provider' => 'autotask']);
+            ], 'id = ?', [$existing['id']]);
         } else {
             $this->db->insert('integrations', [
                 'provider' => 'autotask',
@@ -128,24 +128,71 @@ class IntegrationController
             return Response::json(['success' => false, 'message' => 'Autotask not configured']);
         }
 
-        // Sync customers (simplified - real implementation would use Autotask API)
-        $synced = 0;
-        // This would call Autotask API to get companies and import them
+        try {
+            // Call Autotask API to get companies
+            $companies = $this->fetchAutotaskCompanies($config);
 
-        $this->db->update('integrations', [
-            'last_sync_at' => date('Y-m-d H:i:s'),
-            'sync_status' => 'success',
-        ], 'provider = :provider', [':provider' => 'autotask']);
+            $synced = 0;
+            $skipped = 0;
 
-        AuditLogger::log('integration_sync', 'integration', null, [
-            'provider' => 'autotask',
-            'synced' => $synced
-        ], $request->ip());
+            foreach ($companies as $company) {
+                // Check if client already exists
+                $existing = $this->db->fetchOne(
+                    "SELECT id FROM clients WHERE name = ? OR external_id = ?",
+                    [$company['name'], 'autotask_' . $company['id']]
+                );
 
-        return Response::json([
-            'success' => true,
-            'message' => "Synced $synced customers from Autotask"
-        ]);
+                if ($existing) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Import as new client
+                $this->db->insert('clients', [
+                    'name' => $company['name'],
+                    'external_id' => 'autotask_' . $company['id'],
+                    'integration_source' => 'autotask',
+                    'contact_name' => $company['primaryContact'] ?? null,
+                    'contact_email' => $company['email'] ?? null,
+                    'contact_phone' => $company['phone'] ?? null,
+                    'address' => $company['address'] ?? null,
+                    'active' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $synced++;
+            }
+
+            $this->db->update('integrations', [
+                'last_sync_at' => date('Y-m-d H:i:s'),
+                'sync_status' => 'success',
+                'sync_message' => "Synced $synced, skipped $skipped existing",
+            ], 'provider = ?', ['autotask']);
+
+            AuditLogger::log('integration_sync', 'integration', null, [
+                'provider' => 'autotask',
+                'synced' => $synced,
+                'skipped' => $skipped
+            ], $request->ip());
+
+            return Response::json([
+                'success' => true,
+                'message' => "Successfully synced $synced clients from Autotask ($skipped already existed)"
+            ]);
+
+        } catch (\Exception $e) {
+            $this->db->update('integrations', [
+                'last_sync_at' => date('Y-m-d H:i:s'),
+                'sync_status' => 'error',
+                'sync_message' => $e->getMessage(),
+            ], 'provider = ?', ['autotask']);
+
+            return Response::json([
+                'success' => false,
+                'message' => 'Sync failed: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function itglueConnect(Request $request): Response
@@ -183,7 +230,7 @@ class IntegrationController
                 'api_key' => $apiKey,
                 'enabled' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ], 'provider = :provider', [':provider' => 'itglue']);
+            ], 'id = ?', [$existing['id']]);
         } else {
             $this->db->insert('integrations', [
                 'provider' => 'itglue',
@@ -225,35 +272,241 @@ class IntegrationController
             return Response::json(['success' => false, 'message' => 'ITGlue not configured']);
         }
 
-        // Sync organizations
-        $synced = 0;
-        // This would call ITGlue API to get organizations and import them
+        try {
+            // Call ITGlue API to get organizations
+            $organizations = $this->fetchITGlueOrganizations($config);
 
-        $this->db->update('integrations', [
-            'last_sync_at' => date('Y-m-d H:i:s'),
-            'sync_status' => 'success',
-        ], 'provider = :provider', [':provider' => 'itglue']);
+            $synced = 0;
+            $skipped = 0;
 
-        AuditLogger::log('integration_sync', 'integration', null, [
-            'provider' => 'itglue',
-            'synced' => $synced
-        ], $request->ip());
+            foreach ($organizations as $org) {
+                // Check if client already exists
+                $existing = $this->db->fetchOne(
+                    "SELECT id FROM clients WHERE name = ? OR external_id = ?",
+                    [$org['name'], 'itglue_' . $org['id']]
+                );
 
-        return Response::json([
-            'success' => true,
-            'message' => "Synced $synced organizations from ITGlue"
-        ]);
+                if ($existing) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Import as new client
+                $this->db->insert('clients', [
+                    'name' => $org['name'],
+                    'external_id' => 'itglue_' . $org['id'],
+                    'integration_source' => 'itglue',
+                    'contact_name' => $org['primaryContact'] ?? null,
+                    'contact_email' => $org['email'] ?? null,
+                    'contact_phone' => $org['phone'] ?? null,
+                    'address' => $org['address'] ?? null,
+                    'active' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $synced++;
+            }
+
+            $this->db->update('integrations', [
+                'last_sync_at' => date('Y-m-d H:i:s'),
+                'sync_status' => 'success',
+                'sync_message' => "Synced $synced, skipped $skipped existing",
+            ], 'provider = ?', ['itglue']);
+
+            AuditLogger::log('integration_sync', 'integration', null, [
+                'provider' => 'itglue',
+                'synced' => $synced,
+                'skipped' => $skipped
+            ], $request->ip());
+
+            return Response::json([
+                'success' => true,
+                'message' => "Successfully synced $synced clients from ITGlue ($skipped already existed)"
+            ]);
+
+        } catch (\Exception $e) {
+            $this->db->update('integrations', [
+                'last_sync_at' => date('Y-m-d H:i:s'),
+                'sync_status' => 'error',
+                'sync_message' => $e->getMessage(),
+            ], 'provider = ?', ['itglue']);
+
+            return Response::json([
+                'success' => false,
+                'message' => 'Sync failed: ' . $e->getMessage()
+            ]);
+        }
     }
 
     private function testAutotaskConnection(string $apiUrl, string $username, string $apiSecret): bool
     {
-        // Simplified - real implementation would use cURL to test Autotask API
-        return !empty($apiUrl) && !empty($username) && !empty($apiSecret);
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, rtrim($apiUrl, '/') . '/v1.0/Companies/query?search={"filter":[{"field":"id","op":"gt","value":0}]}&pagesize=1');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'ApiIntegrationCode: ' . $apiSecret,
+                'UserName: ' . $username,
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            return $httpCode >= 200 && $httpCode < 300;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     private function testITGlueConnection(string $apiUrl, string $apiKey): bool
     {
-        // Simplified - real implementation would use cURL to test ITGlue API
-        return !empty($apiUrl) && !empty($apiKey);
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, rtrim($apiUrl, '/') . '/organizations?page[size]=1');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'x-api-key: ' . $apiKey,
+                'Content-Type: application/vnd.api+json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            return $httpCode >= 200 && $httpCode < 300;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    private function fetchAutotaskCompanies(array $config): array
+    {
+        $companies = [];
+        $pageSize = 500;
+        $page = 1;
+        $hasMore = true;
+
+        while ($hasMore) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, rtrim($config['api_url'], '/') . '/v1.0/Companies/query?search={"filter":[{"field":"isActive","op":"eq","value":true}]}&pagesize=' . $pageSize);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'ApiIntegrationCode: ' . $config['api_secret'],
+                'UserName: ' . $config['username'],
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                throw new \Exception('Autotask API returned status ' . $httpCode);
+            }
+
+            $data = json_decode($response, true);
+            if (!isset($data['items'])) {
+                break;
+            }
+
+            foreach ($data['items'] as $item) {
+                $companies[] = [
+                    'id' => $item['id'],
+                    'name' => $item['companyName'] ?? 'Unknown',
+                    'primaryContact' => $item['primaryContact'] ?? null,
+                    'email' => $item['email'] ?? null,
+                    'phone' => $item['phone'] ?? null,
+                    'address' => $this->formatAddress($item),
+                ];
+            }
+
+            $hasMore = isset($data['pageDetails']) && $data['pageDetails']['nextPageUrl'];
+            $page++;
+
+            if ($page > 10) break; // Safety limit
+        }
+
+        return $companies;
+    }
+
+    private function fetchITGlueOrganizations(array $config): array
+    {
+        $organizations = [];
+        $pageSize = 100;
+        $page = 1;
+        $hasMore = true;
+
+        while ($hasMore) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, rtrim($config['api_url'], '/') . '/organizations?page[number]=' . $page . '&page[size]=' . $pageSize);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'x-api-key: ' . $config['api_key'],
+                'Content-Type: application/vnd.api+json'
+            ]);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                throw new \Exception('ITGlue API returned status ' . $httpCode);
+            }
+
+            $data = json_decode($response, true);
+            if (!isset($data['data']) || empty($data['data'])) {
+                break;
+            }
+
+            foreach ($data['data'] as $item) {
+                $attr = $item['attributes'] ?? [];
+                $organizations[] = [
+                    'id' => $item['id'],
+                    'name' => $attr['name'] ?? 'Unknown',
+                    'primaryContact' => $attr['primary-contact-name'] ?? null,
+                    'email' => $attr['primary-contact-email'] ?? null,
+                    'phone' => $attr['phone'] ?? null,
+                    'address' => $this->formatITGlueAddress($attr),
+                ];
+            }
+
+            $hasMore = isset($data['links']['next']);
+            $page++;
+
+            if ($page > 10) break; // Safety limit
+        }
+
+        return $organizations;
+    }
+
+    private function formatAddress(array $data): ?string
+    {
+        $parts = [];
+        if (!empty($data['address1'])) $parts[] = $data['address1'];
+        if (!empty($data['address2'])) $parts[] = $data['address2'];
+        if (!empty($data['city'])) $parts[] = $data['city'];
+        if (!empty($data['state'])) $parts[] = $data['state'];
+        if (!empty($data['zipCode'])) $parts[] = $data['zipCode'];
+
+        return !empty($parts) ? implode(', ', $parts) : null;
+    }
+
+    private function formatITGlueAddress(array $attr): ?string
+    {
+        $parts = [];
+        if (!empty($attr['address-1'])) $parts[] = $attr['address-1'];
+        if (!empty($attr['address-2'])) $parts[] = $attr['address-2'];
+        if (!empty($attr['city'])) $parts[] = $attr['city'];
+        if (!empty($attr['region-name'])) $parts[] = $attr['region-name'];
+        if (!empty($attr['postal-code'])) $parts[] = $attr['postal-code'];
+
+        return !empty($parts) ? implode(', ', $parts) : null;
     }
 }

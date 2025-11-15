@@ -80,6 +80,11 @@
                         <span class="nav-label">Assessments</span>
                     </a>
 
+                    <a href="<?= $url('risk-assessments') ?>" class="nav-item <?= ($current_page ?? '') === 'risk-assessments' ? 'active' : '' ?>">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-label">Risk Assessments</span>
+                    </a>
+
                     <a href="<?= $url('sprs') ?>" class="nav-item <?= ($current_page ?? '') === 'sprs' ? 'active' : '' ?>">
                         <span class="nav-icon">📈</span>
                         <span class="nav-label">SPRS Scoring</span>

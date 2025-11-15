@@ -130,6 +130,16 @@ class Application
             $this->router->post('/assessments/{id}/publish', 'App\Controllers\AssessmentController@publish');
             $this->router->post('/assessments/{id}/delete', 'App\Controllers\AssessmentController@delete');
 
+            // Risk Assessments
+            $this->router->get('/risk-assessments', 'App\Controllers\RiskAssessmentController@index');
+            $this->router->get('/risk-assessments/create', 'App\Controllers\RiskAssessmentController@create');
+            $this->router->post('/risk-assessments', 'App\Controllers\RiskAssessmentController@store');
+            $this->router->get('/risk-assessments/{id}/questionnaire', 'App\Controllers\RiskAssessmentController@questionnaire');
+            $this->router->post('/risk-assessments/{id}/save-response', 'App\Controllers\RiskAssessmentController@saveResponse');
+            $this->router->post('/risk-assessments/{id}/complete', 'App\Controllers\RiskAssessmentController@complete');
+            $this->router->get('/risk-assessments/{id}/results', 'App\Controllers\RiskAssessmentController@results');
+            $this->router->post('/risk-assessments/{id}/delete', 'App\Controllers\RiskAssessmentController@delete');
+
             // SPRS Scoring
             $this->router->get('/sprs', 'App\Controllers\SprsController@index');
             $this->router->get('/sprs/export', 'App\Controllers\SprsController@export');

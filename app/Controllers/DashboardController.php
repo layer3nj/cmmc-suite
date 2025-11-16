@@ -40,8 +40,11 @@ class DashboardController
 
         $currentCustomerId = Session::get('current_customer_id');
 
+        // Get client frameworks
+        $clientFrameworks = $this->getClientFrameworks($currentCustomerId);
+
         // Get metrics
-        $metrics = $this->getMetrics($currentCustomerId);
+        $metrics = $this->getMetrics($currentCustomerId, $clientFrameworks);
 
         // Get recent assessments
         $recentAssessments = $this->getRecentAssessments($currentCustomerId);
@@ -54,25 +57,73 @@ class DashboardController
             'recent_assessments' => $recentAssessments,
             'upcoming_milestones' => $upcomingMilestones,
             'current_customer' => $this->getCurrentCustomer($currentCustomerId),
+            'client_frameworks' => $clientFrameworks,
         ]);
 
         return new Response($content);
     }
 
-    private function getMetrics(?int $customerId): array
+    private function getClientFrameworks(?int $customerId): array
+    {
+        if (!$customerId) {
+            return [];
+        }
+
+        return $this->db->fetchAll(
+            "SELECT * FROM client_frameworks WHERE client_id = ? ORDER BY is_primary DESC",
+            [$customerId]
+        );
+    }
+
+    private function getMetrics(?int $customerId, array $clientFrameworks = []): array
     {
         if (!$customerId) {
             return [
-                'current_sprs' => 0,
-                'projected_sprs' => 0,
-                'ml1_percent' => 0,
-                'ml2_percent' => 0,
-                'ml3_percent' => 0,
+                'frameworks' => [],
                 'open_poam' => 0,
-                'total_controls' => 0,
             ];
         }
 
+        // Get open POA&M count (common to all frameworks)
+        $openPoam = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM poam_items
+             WHERE customer_id = ? AND STATUS IN ('open', 'in_progress')",
+            [$customerId]
+        );
+
+        $metrics = [
+            'frameworks' => [],
+            'open_poam' => $openPoam,
+        ];
+
+        // Get metrics for each assigned framework
+        foreach ($clientFrameworks as $clientFramework) {
+            $framework = $clientFramework['framework'];
+
+            switch ($framework) {
+                case 'CMMC':
+                    $metrics['frameworks'][$framework] = $this->getCMMCMetrics($customerId, $clientFramework);
+                    break;
+                case 'NIST800171':
+                    $metrics['frameworks'][$framework] = $this->getNIST800171Metrics($customerId);
+                    break;
+                case 'NIST80053':
+                    $metrics['frameworks'][$framework] = $this->getNIST80053Metrics($customerId);
+                    break;
+                case 'FTC-SAFEGUARDS':
+                    $metrics['frameworks'][$framework] = $this->getFTCSafeguardsMetrics($customerId);
+                    break;
+                default:
+                    $metrics['frameworks'][$framework] = $this->getGenericFrameworkMetrics($customerId, $framework);
+                    break;
+            }
+        }
+
+        return $metrics;
+    }
+
+    private function getCMMCMetrics(int $customerId, array $clientFramework): array
+    {
         // Get client info including CMMC maturity level
         $client = $this->db->fetchOne(
             "SELECT * FROM clients WHERE id = ?",
@@ -104,8 +155,8 @@ class DashboardController
                 'ml1_percent' => 0,
                 'ml2_percent' => 0,
                 'ml3_percent' => 0,
-                'open_poam' => 0,
                 'total_controls' => $totalControls,
+                'maturity_level' => $client['cmmc_maturity_level'] ?? 'Not Set',
             ];
         }
 
@@ -115,13 +166,6 @@ class DashboardController
 
         // Calculate ML completion percentages
         $mlStats = $this->getMLCompletionStats($assessment['id'], $maxLevel);
-
-        // Get open POA&M count
-        $openPoam = $this->db->fetchColumn(
-            "SELECT COUNT(*) FROM poam_items
-             WHERE customer_id = ? AND status IN ('open', 'in_progress')",
-            [$customerId]
-        );
 
         // Get total CMMC controls for this maturity level
         $totalControls = $this->db->fetchColumn(
@@ -136,8 +180,192 @@ class DashboardController
             'ml1_percent' => $mlStats['ml1_percent'],
             'ml2_percent' => $mlStats['ml2_percent'],
             'ml3_percent' => $mlStats['ml3_percent'],
-            'open_poam' => $openPoam,
             'total_controls' => $totalControls,
+            'maturity_level' => $client['cmmc_maturity_level'] ?? 'Not Set',
+        ];
+    }
+
+    private function getNIST800171Metrics(int $customerId): array
+    {
+        $totalControls = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM controls WHERE framework = 'NIST800171'"
+        );
+
+        $assessment = $this->db->fetchOne(
+            "SELECT id FROM assessments
+             WHERE customer_id = ? AND status = 'published'
+             ORDER BY assessed_at DESC LIMIT 1",
+            [$customerId]
+        );
+
+        if (!$assessment) {
+            return [
+                'total_controls' => $totalControls,
+                'met' => 0,
+                'not_met' => 0,
+                'completion_percent' => 0,
+            ];
+        }
+
+        $met = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'NIST800171' AND status = 'met'",
+            [$assessment['id']]
+        );
+
+        $notMet = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'NIST800171' AND status = 'not_met'",
+            [$assessment['id']]
+        );
+
+        return [
+            'total_controls' => $totalControls,
+            'met' => $met,
+            'not_met' => $notMet,
+            'completion_percent' => $totalControls > 0 ? round(($met / $totalControls) * 100) : 0,
+        ];
+    }
+
+    private function getNIST80053Metrics(int $customerId): array
+    {
+        $totalControls = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM controls WHERE framework = 'NIST80053'"
+        );
+
+        $assessment = $this->db->fetchOne(
+            "SELECT id FROM assessments
+             WHERE customer_id = ? AND status = 'published'
+             ORDER BY assessed_at DESC LIMIT 1",
+            [$customerId]
+        );
+
+        if (!$assessment) {
+            return [
+                'total_controls' => $totalControls,
+                'met' => 0,
+                'not_met' => 0,
+                'completion_percent' => 0,
+                'families' => [],
+            ];
+        }
+
+        $met = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'NIST80053' AND status = 'met'",
+            [$assessment['id']]
+        );
+
+        $notMet = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'NIST80053' AND status = 'not_met'",
+            [$assessment['id']]
+        );
+
+        // Get top control families
+        $families = $this->db->fetchAll(
+            "SELECT SUBSTRING_INDEX(c.code, '-', 1) as family,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN cf.status = 'met' THEN 1 ELSE 0 END) as met
+             FROM controls c
+             LEFT JOIN control_findings cf ON c.code = cf.control_code AND cf.assessment_id = ?
+             WHERE c.framework = 'NIST80053'
+             GROUP BY family
+             ORDER BY family",
+            [$assessment['id']]
+        );
+
+        return [
+            'total_controls' => $totalControls,
+            'met' => $met,
+            'not_met' => $notMet,
+            'completion_percent' => $totalControls > 0 ? round(($met / $totalControls) * 100) : 0,
+            'families' => array_slice($families, 0, 5), // Top 5 families
+        ];
+    }
+
+    private function getFTCSafeguardsMetrics(int $customerId): array
+    {
+        $totalControls = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM controls WHERE framework = 'FTC-SAFEGUARDS'"
+        );
+
+        $assessment = $this->db->fetchOne(
+            "SELECT id FROM assessments
+             WHERE customer_id = ? AND status = 'published'
+             ORDER BY assessed_at DESC LIMIT 1",
+            [$customerId]
+        );
+
+        if (!$assessment) {
+            return [
+                'total_controls' => $totalControls,
+                'met' => 0,
+                'not_met' => 0,
+                'completion_percent' => 0,
+            ];
+        }
+
+        $met = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'FTC-SAFEGUARDS' AND status = 'met'",
+            [$assessment['id']]
+        );
+
+        $notMet = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = 'FTC-SAFEGUARDS' AND status = 'not_met'",
+            [$assessment['id']]
+        );
+
+        return [
+            'total_controls' => $totalControls,
+            'met' => $met,
+            'not_met' => $notMet,
+            'completion_percent' => $totalControls > 0 ? round(($met / $totalControls) * 100) : 0,
+        ];
+    }
+
+    private function getGenericFrameworkMetrics(int $customerId, string $framework): array
+    {
+        $totalControls = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM controls WHERE framework = ?",
+            [$framework]
+        );
+
+        $assessment = $this->db->fetchOne(
+            "SELECT id FROM assessments
+             WHERE customer_id = ? AND status = 'published'
+             ORDER BY assessed_at DESC LIMIT 1",
+            [$customerId]
+        );
+
+        if (!$assessment) {
+            return [
+                'total_controls' => $totalControls,
+                'met' => 0,
+                'not_met' => 0,
+                'completion_percent' => 0,
+            ];
+        }
+
+        $met = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = ? AND status = 'met'",
+            [$assessment['id'], $framework]
+        );
+
+        $notMet = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM control_findings
+             WHERE assessment_id = ? AND control_framework = ? AND status = 'not_met'",
+            [$assessment['id'], $framework]
+        );
+
+        return [
+            'total_controls' => $totalControls,
+            'met' => $met,
+            'not_met' => $notMet,
+            'completion_percent' => $totalControls > 0 ? round(($met / $totalControls) * 100) : 0,
         ];
     }
 

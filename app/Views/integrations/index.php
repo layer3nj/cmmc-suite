@@ -150,6 +150,14 @@ ob_start();
 </div>
 
 <script>
+// Immediate execution - should run before anything else
+alert('SCRIPT IS LOADING - Check console now!');
+console.log('========================================');
+console.log('CSRF PROTECTION SCRIPT STARTING');
+console.log('Current URL:', window.location.href);
+console.log('Current time:', new Date().toISOString());
+console.log('========================================');
+
 // CSRF token validation function - called inline from form onsubmit handlers
 function validateCsrfToken(form, syncType) {
     console.log('=== CSRF VALIDATION START ===');
@@ -206,6 +214,7 @@ function validateCsrfToken(form, syncType) {
 
 // Also log when the script loads
 console.log('CSRF validation script loaded successfully');
+console.log('========================================');
 </script>
 
 <?php

@@ -122,16 +122,41 @@ class AdminDashboardController
 
     private function getPolicyStats(int $clientId): array
     {
-        // Note: The policies table is currently a global template table
-        // without customer-specific tracking. Future enhancement would add
-        // a customer_policies or policy_assignments table.
-        // For now, return zero counts.
+        // Count policies by status from client_policies table
+        $approved = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM client_policies
+             WHERE client_id = ? AND status = 'approved' AND is_active = 1",
+            [$clientId]
+        ) ?: 0;
+
+        $inReview = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM client_policies
+             WHERE client_id = ? AND status = 'in_review' AND is_active = 1",
+            [$clientId]
+        ) ?: 0;
+
+        $draft = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM client_policies
+             WHERE client_id = ? AND status = 'draft' AND is_active = 1",
+            [$clientId]
+        ) ?: 0;
+
+        // Count outdated policies (approved more than 1 year ago and not reviewed recently)
+        $outdated = $this->db->fetchColumn(
+            "SELECT COUNT(*) FROM client_policies
+             WHERE client_id = ?
+             AND status = 'approved'
+             AND is_active = 1
+             AND approved_at < DATE_SUB(NOW(), INTERVAL 1 YEAR)
+             AND (last_reviewed_at IS NULL OR last_reviewed_at < DATE_SUB(NOW(), INTERVAL 1 YEAR))",
+            [$clientId]
+        ) ?: 0;
 
         return [
-            'approved' => 0,
-            'in_review' => 0,
-            'draft' => 0,
-            'outdated' => 0
+            'approved' => $approved,
+            'in_review' => $inReview,
+            'draft' => $draft,
+            'outdated' => $outdated
         ];
     }
 

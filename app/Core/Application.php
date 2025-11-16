@@ -170,14 +170,22 @@ class Application
             $this->router->get('/documents/{id}/download', 'App\Controllers\DocumentController@download');
             $this->router->post('/documents/{id}/delete', 'App\Controllers\DocumentController@delete');
 
-            // Policy Templates
-            $this->router->get('/policies', 'App\Controllers\PolicyController@index');
-            $this->router->get('/policies/create', 'App\Controllers\PolicyController@create');
-            $this->router->post('/policies', 'App\Controllers\PolicyController@store');
-            $this->router->get('/policies/{id}', 'App\Controllers\PolicyController@show');
-            $this->router->get('/policies/{id}/edit', 'App\Controllers\PolicyController@edit');
-            $this->router->post('/policies/{id}', 'App\Controllers\PolicyController@update');
-            $this->router->post('/policies/{id}/delete', 'App\Controllers\PolicyController@delete');
+            // Policy Templates (Global)
+            $this->router->get('/policy-templates', 'App\Controllers\PolicyController@index');
+            $this->router->get('/policy-templates/create', 'App\Controllers\PolicyController@create');
+            $this->router->post('/policy-templates', 'App\Controllers\PolicyController@store');
+            $this->router->get('/policy-templates/{id}', 'App\Controllers\PolicyController@show');
+            $this->router->get('/policy-templates/{id}/edit', 'App\Controllers\PolicyController@edit');
+            $this->router->post('/policy-templates/{id}', 'App\Controllers\PolicyController@update');
+            $this->router->post('/policy-templates/{id}/delete', 'App\Controllers\PolicyController@delete');
+
+            // Client Policies (Customer-Specific)
+            $this->router->get('/policies', 'App\Controllers\ClientPolicyController@index');
+            $this->router->get('/policies/create', 'App\Controllers\ClientPolicyController@create');
+            $this->router->post('/policies', 'App\Controllers\ClientPolicyController@store');
+            $this->router->post('/policies/copy-template', 'App\Controllers\ClientPolicyController@copyFromTemplate');
+            $this->router->post('/policies/{id}/submit-review', 'App\Controllers\ClientPolicyController@submitForReview');
+            $this->router->post('/policies/{id}/approve', 'App\Controllers\ClientPolicyController@approve');
 
             // Integrations
             $this->router->get('/integrations', 'App\Controllers\IntegrationController@index');

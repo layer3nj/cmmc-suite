@@ -382,8 +382,11 @@ class IntegrationController
     private function testAutotaskConnection(string $apiUrl, string $username, string $apiSecret, string $integrationCode): bool
     {
         try {
+            $url = rtrim($apiUrl, '/') . '/v1.0/Companies/query?search={"filter":[{"field":"id","op":"gt","value":0}]}&pagesize=1';
+            error_log('Autotask: Testing connection to: ' . $url);
+
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, rtrim($apiUrl, '/') . '/v1.0/Companies/query?search={"filter":[{"field":"id","op":"gt","value":0}]}&pagesize=1');
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'ApiIntegrationCode: ' . $integrationCode,
@@ -395,10 +398,20 @@ class IntegrationController
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
+
+            error_log('Autotask: Connection test HTTP code: ' . $httpCode);
+            if ($curlError) {
+                error_log('Autotask: cURL error: ' . $curlError);
+            }
+            if ($httpCode !== 200) {
+                error_log('Autotask: Response: ' . substr($response, 0, 500));
+            }
 
             return $httpCode >= 200 && $httpCode < 300;
         } catch (\Exception $e) {
+            error_log('Autotask: Connection test exception: ' . $e->getMessage());
             return false;
         }
     }
@@ -432,9 +445,14 @@ class IntegrationController
         $page = 1;
         $hasMore = true;
 
+        error_log('Autotask: Starting to fetch companies');
+
         while ($hasMore) {
+            $url = rtrim($config['api_url'], '/') . '/v1.0/Companies/query?search={"filter":[{"field":"isActive","op":"eq","value":true}]}&pagesize=' . $pageSize;
+            error_log('Autotask: Fetching page with URL: ' . $url);
+
             $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, rtrim($config['api_url'], '/') . '/v1.0/Companies/query?search={"filter":[{"field":"isActive","op":"eq","value":true}]}&pagesize=' . $pageSize);
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'ApiIntegrationCode: ' . $config['api_key'],
@@ -446,16 +464,27 @@ class IntegrationController
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
 
+            error_log('Autotask: Fetch companies HTTP code: ' . $httpCode);
+            if ($curlError) {
+                error_log('Autotask: cURL error: ' . $curlError);
+                throw new \Exception('Autotask cURL error: ' . $curlError);
+            }
+
             if ($httpCode !== 200) {
-                throw new \Exception('Autotask API returned status ' . $httpCode);
+                error_log('Autotask: Error response: ' . substr($response, 0, 1000));
+                throw new \Exception('Autotask API returned status ' . $httpCode . ': ' . substr($response, 0, 200));
             }
 
             $data = json_decode($response, true);
             if (!isset($data['items'])) {
+                error_log('Autotask: No items in response, stopping pagination');
                 break;
             }
+
+            error_log('Autotask: Found ' . count($data['items']) . ' companies in this page');
 
             foreach ($data['items'] as $item) {
                 $companies[] = [

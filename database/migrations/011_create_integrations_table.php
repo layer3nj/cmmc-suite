@@ -16,6 +16,7 @@ return [
             enabled TINYINT(1) DEFAULT 0,
             last_sync_at TIMESTAMP NULL,
             sync_status VARCHAR(50),
+            sync_message TEXT,
             config JSON,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -36,6 +37,7 @@ return [
             enabled BOOLEAN DEFAULT FALSE,
             last_sync_at TIMESTAMP NULL,
             sync_status VARCHAR(50),
+            sync_message TEXT,
             config JSONB,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

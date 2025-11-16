@@ -44,7 +44,7 @@ ob_start();
                 </div>
             </div>
             <div class="integration-actions">
-                <form action="<?= $url('integrations/autotask/sync') ?>" method="POST" style="display: inline;">
+                <form action="<?= $url('integrations/autotask/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="autotask">
                     <?= $csrf() ?>
                     <button type="submit" class="btn btn-primary">Sync Now</button>
                 </form>
@@ -113,7 +113,7 @@ ob_start();
                 </div>
             </div>
             <div class="integration-actions">
-                <form action="<?= $url('integrations/itglue/sync') ?>" method="POST" style="display: inline;">
+                <form action="<?= $url('integrations/itglue/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="itglue">
                     <?= $csrf() ?>
                     <button type="submit" class="btn btn-primary">Sync Now</button>
                 </form>
@@ -148,6 +148,47 @@ ob_start();
         </div>
     </div>
 </div>
+
+<script>
+// Fix CSRF token issue - ensure correct field is submitted
+document.addEventListener('DOMContentLoaded', function() {
+    const syncForms = document.querySelectorAll('.sync-form');
+
+    syncForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            console.log('Sync form submitting for:', form.dataset.syncType);
+
+            // Find the correct CSRF field
+            const csrfField = form.querySelector('input[name="_csrf_token"]');
+
+            if (!csrfField) {
+                console.error('CSRF token field _csrf_token not found!');
+                alert('Security token missing. Please refresh the page.');
+                e.preventDefault();
+                return false;
+            }
+
+            if (!csrfField.value || csrfField.value === '') {
+                console.error('CSRF token value is empty!');
+                alert('Security token is empty. Please refresh the page.');
+                e.preventDefault();
+                return false;
+            }
+
+            console.log('CSRF token found:', csrfField.value.substring(0, 16) + '...');
+
+            // Remove any duplicate csrf_token fields (without underscore)
+            const wrongFields = form.querySelectorAll('input[name="csrf_token"]');
+            wrongFields.forEach(field => {
+                console.log('Removing duplicate csrf_token field (no underscore)');
+                field.remove();
+            });
+
+            console.log('Form validated, submitting...');
+        });
+    });
+});
+</script>
 
 <?php
 $content = ob_get_clean();

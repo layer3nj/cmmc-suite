@@ -50,11 +50,34 @@ ob_start();
         </tr>
         <tr>
             <th>Autotask Company ID</th>
-            <td><?= $e($client['autotask_company_id'] ?? '-') ?></td>
+            <td>
+                <?= $e($client['autotask_company_id'] ?? '-') ?>
+                <?php if (!empty($client['autotask_company_id']) && !empty($autotask_config)): ?>
+                    <?php
+                    // Extract Autotask instance from API URL (e.g., webservices2.autotask.net -> ww2)
+                    $autotaskUrl = $autotask_config['api_url'] ?? '';
+                    if (preg_match('/webservices(\d+)\.autotask\.net/', $autotaskUrl, $matches)) {
+                        $instance = 'ww' . $matches[1];
+                        $autotaskLink = "https://{$instance}.autotask.net/Autotask/AutotaskExtend/ExecuteCommand.aspx?Code=OpenAccount&AccountID={$client['autotask_company_id']}";
+                    ?>
+                        <a href="<?= $e($autotaskLink) ?>" target="_blank" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
+                            View in Autotask
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </td>
         </tr>
         <tr>
             <th>ITGlue Organization ID</th>
-            <td><?= $e($client['itglue_organization_id'] ?? '-') ?></td>
+            <td>
+                <?= $e($client['itglue_organization_id'] ?? '-') ?>
+                <?php if (!empty($client['itglue_organization_id']) && !empty($itglue_config)): ?>
+                    <?php $itglueLink = "https://app.itglue.com/{$client['itglue_organization_id']}/overview"; ?>
+                    <a href="<?= $e($itglueLink) ?>" target="_blank" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
+                        View in ITGlue
+                    </a>
+                <?php endif; ?>
+            </td>
         </tr>
         <tr>
             <th>Assigned Frameworks</th>

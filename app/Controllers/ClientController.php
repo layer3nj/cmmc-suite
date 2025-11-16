@@ -203,12 +203,22 @@ class ClientController
             [$id]
         );
 
+        // Get integration configurations for external links
+        $autotask_config = $this->db->fetchOne(
+            "SELECT * FROM integrations WHERE provider = 'autotask' AND enabled = 1"
+        );
+        $itglue_config = $this->db->fetchOne(
+            "SELECT * FROM integrations WHERE provider = 'itglue' AND enabled = 1"
+        );
+
         $content = View::render('clients/show', [
             'client' => $client,
             'stats' => $stats,
             'recent_assessments' => $recent_assessments,
             'recent_poam' => $recent_poam,
             'assigned_frameworks' => $assignedFrameworks,
+            'autotask_config' => $autotask_config,
+            'itglue_config' => $itglue_config,
         ]);
 
         return new Response($content);

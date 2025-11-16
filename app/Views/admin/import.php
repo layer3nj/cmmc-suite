@@ -127,6 +127,7 @@ ob_start();
             <p><strong>Includes:</strong></p>
             <ul style="margin: 10px 0; padding-left: 25px;">
                 <li>CMMC ML2 Policy Templates (14 comprehensive policies)</li>
+                <li>Risk Assessment Questions (70+ industry-standard security questions)</li>
                 <li>Sample assessment data</li>
                 <li>Additional framework-specific content</li>
             </ul>

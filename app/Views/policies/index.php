@@ -10,7 +10,7 @@ ob_start();
     <p class="page-subtitle">Boilerplate compliance policies applicable across all frameworks</p>
     <div class="page-actions">
         <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
-        <a href="<?= $url('policies/create') ?>" class="btn btn-primary">Add Policy Template</a>
+        <a href="<?= $url('policy-templates/create') ?>" class="btn btn-primary">Add Policy Template</a>
         <?php endif; ?>
     </div>
 </div>
@@ -20,20 +20,22 @@ ob_start();
         <h3>Filter by Category</h3>
     </div>
     <div style="padding: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <a href="<?= $url('policies') ?>" class="btn btn-sm <?= !$selected_category ? 'btn-primary' : 'btn-secondary' ?>">All</a>
-        <?php foreach ($categories as $cat): ?>
-            <a href="<?= $url('policies?category=' . urlencode($cat['category'])) ?>"
-               class="btn btn-sm <?= $selected_category === $cat['category'] ? 'btn-primary' : 'btn-secondary' ?>">
-                <?= $e($cat['category']) ?>
-            </a>
-        <?php endforeach; ?>
+        <a href="<?= $url('policy-templates') ?>" class="btn btn-sm <?= empty($selected_category) ? 'btn-primary' : 'btn-secondary' ?>">All</a>
+        <?php if (!empty($categories)): ?>
+            <?php foreach ($categories as $cat): ?>
+                <a href="<?= $url('policy-templates?category=' . urlencode($cat['category'])) ?>"
+                   class="btn btn-sm <?= ($selected_category ?? '') === $cat['category'] ? 'btn-primary' : 'btn-secondary' ?>">
+                    <?= $e($cat['category']) ?>
+                </a>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>
 
 <?php if (empty($policies)): ?>
     <div class="alert alert-info">
         <span class="alert-icon">ℹ️</span>
-        No policy templates found. <a href="<?= $url('policies/create') ?>">Create your first policy template</a>.
+        No policy templates found. <a href="<?= $url('policy-templates/create') ?>">Create your first policy template</a>.
     </div>
 <?php else: ?>
     <?php

@@ -15,41 +15,6 @@ ob_start();
     margin-bottom: 30px;
 }
 
-.tasks-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.task-section {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 8px;
-}
-
-.task-section h3 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-.task-link {
-    display: block;
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    margin-bottom: 10px;
-    transition: all 0.2s;
-}
-
-.task-link:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateX(5px);
-}
-
 .overview-bar {
     display: flex;
     justify-content: space-between;
@@ -364,25 +329,6 @@ ob_start();
 <div class="admin-header">
     <h1 style="margin: 0 0 10px 0; font-size: 28px;">Customers Overview</h1>
     <p style="margin: 0; opacity: 0.9;">Manage and monitor all customer accounts</p>
-
-    <div class="tasks-grid">
-        <div class="task-section">
-            <h3>📋 Administrative Tasks</h3>
-            <a href="<?= $url('policies') ?>" class="task-link">
-                Review and approve policies
-            </a>
-            <a href="<?= $url('assessments') ?>" class="task-link">
-                Review business systems audits
-            </a>
-        </div>
-
-        <div class="task-section">
-            <h3>👤 User Tasks</h3>
-            <a href="<?= $url('training') ?>" class="task-link">
-                Complete your annual security training
-            </a>
-        </div>
-    </div>
 </div>
 
 <!-- Overview Bar -->

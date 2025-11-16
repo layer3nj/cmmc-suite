@@ -55,6 +55,10 @@ ob_start();
                     <td>
                         <a href="<?= $url('clients/' . $client['id'] . '/select') ?>" class="btn btn-sm btn-primary">Select</a>
                         <a href="<?= $url('clients/' . $client['id']) ?>" class="btn btn-sm btn-secondary">View</a>
+                        <form action="<?= $url('clients/' . $client['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this client? This will mark the client as inactive.');">
+                            <?= $csrf() ?>
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
                     </td>
                 </tr>
                 <?php endforeach; ?>

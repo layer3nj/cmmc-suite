@@ -67,6 +67,11 @@ ob_start();
 <div class="card">
     <div class="card-header">
         <h3>Existing Quick Links</h3>
+        <?php if (!empty($links)): ?>
+        <button onclick="deleteSelected()" class="btn btn-sm btn-danger" id="delete-selected-btn" style="display: none;">
+            Delete Selected
+        </button>
+        <?php endif; ?>
     </div>
 
     <?php if (empty($links)): ?>
@@ -75,89 +80,98 @@ ob_start();
             No quick links configured yet. Add one using the form above.
         </div>
     <?php else: ?>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Order</th>
-                    <th>Icon</th>
-                    <th>Title</th>
-                    <th>URL</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($links as $link): ?>
-                <tr id="link-<?= $link['id'] ?>">
-                    <td><?= $e($link['display_order']) ?></td>
-                    <td style="font-size: 24px;"><?= $e($link['icon'] ?? '🔗') ?></td>
-                    <td><strong><?= $e($link['title']) ?></strong></td>
-                    <td>
-                        <a href="<?= $e($link['url']) ?>" target="_blank" rel="noopener noreferrer" style="font-size: 12px;">
-                            <?= $e(substr($link['url'], 0, 50)) ?><?= strlen($link['url']) > 50 ? '...' : '' ?>
-                        </a>
-                    </td>
-                    <td><?= $e(substr($link['description'] ?? '', 0, 60)) ?><?= strlen($link['description'] ?? '') > 60 ? '...' : '' ?></td>
-                    <td>
-                        <?= $link['is_active'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-secondary">Inactive</span>' ?>
-                    </td>
-                    <td>
-                        <button onclick="editLink(<?= $link['id'] ?>)" class="btn btn-sm btn-secondary">Edit</button>
-                        <form action="<?= $url('home/links/' . $link['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this link?');">
-                            <?= $csrf() ?>
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                <tr id="edit-<?= $link['id'] ?>" style="display: none;">
-                    <td colspan="7" style="background: #f8f9fa; padding: 20px;">
-                        <form action="<?= $url('home/links/' . $link['id'] . '/update') ?>" method="POST">
-                            <?= $csrf() ?>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Title *</label>
-                                    <input type="text" name="title" value="<?= $e($link['title']) ?>" required class="form-control">
+        <form id="bulk-delete-form" action="<?= $url('home/links/delete-multiple') ?>" method="POST">
+            <?= $csrf() ?>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Order</th>
+                        <th>Icon</th>
+                        <th>Title</th>
+                        <th>URL</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($links as $link): ?>
+                    <tr id="link-<?= $link['id'] ?>">
+                        <td>
+                            <input type="checkbox" name="link_ids[]" value="<?= $link['id'] ?>" class="link-checkbox" onchange="updateDeleteButton()">
+                        </td>
+                        <td><?= $e($link['display_order']) ?></td>
+                        <td style="font-size: 24px;"><?= $e($link['icon'] ?? '🔗') ?></td>
+                        <td><strong><?= $e($link['title']) ?></strong></td>
+                        <td>
+                            <a href="<?= $e($link['url']) ?>" target="_blank" rel="noopener noreferrer" style="font-size: 12px;">
+                                <?= $e(substr($link['url'], 0, 50)) ?><?= strlen($link['url']) > 50 ? '...' : '' ?>
+                            </a>
+                        </td>
+                        <td><?= $e(substr($link['description'] ?? '', 0, 60)) ?><?= strlen($link['description'] ?? '') > 60 ? '...' : '' ?></td>
+                        <td>
+                            <?= $link['is_active'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-secondary">Inactive</span>' ?>
+                        </td>
+                        <td>
+                            <button type="button" onclick="editLink(<?= $link['id'] ?>)" class="btn btn-sm btn-secondary">Edit</button>
+                            <form action="<?= $url('home/links/' . $link['id'] . '/delete') ?>" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this link?');">
+                                <?= $csrf() ?>
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr id="edit-<?= $link['id'] ?>" style="display: none;">
+                        <td colspan="8" style="background: #f8f9fa; padding: 20px;">
+                            <form action="<?= $url('home/links/' . $link['id'] . '/update') ?>" method="POST">
+                                <?= $csrf() ?>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Title *</label>
+                                        <input type="text" name="title" value="<?= $e($link['title']) ?>" required class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Icon</label>
+                                        <input type="text" name="icon" value="<?= $e($link['icon'] ?? '') ?>" class="form-control" maxlength="10">
+                                    </div>
                                 </div>
+
                                 <div class="form-group">
-                                    <label>Icon</label>
-                                    <input type="text" name="icon" value="<?= $e($link['icon'] ?? '') ?>" class="form-control" maxlength="10">
+                                    <label>URL *</label>
+                                    <input type="url" name="url" value="<?= $e($link['url']) ?>" required class="form-control">
                                 </div>
-                            </div>
 
-                            <div class="form-group">
-                                <label>URL *</label>
-                                <input type="url" name="url" value="<?= $e($link['url']) ?>" required class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Description</label>
-                                <textarea name="description" rows="2" class="form-control"><?= $e($link['description'] ?? '') ?></textarea>
-                            </div>
-
-                            <div class="form-row">
                                 <div class="form-group">
-                                    <label>Display Order</label>
-                                    <input type="number" name="display_order" value="<?= $e($link['display_order']) ?>" class="form-control" min="0">
+                                    <label>Description</label>
+                                    <textarea name="description" rows="2" class="form-control"><?= $e($link['description'] ?? '') ?></textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="is_active" value="1" <?= $link['is_active'] ? 'checked' : '' ?>>
-                                        Active
-                                    </label>
-                                </div>
-                            </div>
 
-                            <div class="form-actions">
-                                <button type="button" onclick="cancelEdit(<?= $link['id'] ?>)" class="btn btn-secondary">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Update Link</button>
-                            </div>
-                        </form>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Display Order</label>
+                                        <input type="number" name="display_order" value="<?= $e($link['display_order']) ?>" class="form-control" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" name="is_active" value="1" <?= $link['is_active'] ? 'checked' : '' ?>>
+                                            Active
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" onclick="cancelEdit(<?= $link['id'] ?>)" class="btn btn-secondary">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Update Link</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </form>
     <?php endif; ?>
 </div>
 
@@ -170,6 +184,39 @@ function editLink(id) {
 function cancelEdit(id) {
     document.getElementById('link-' + id).style.display = 'table-row';
     document.getElementById('edit-' + id).style.display = 'none';
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.link-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    updateDeleteButton();
+}
+
+function updateDeleteButton() {
+    const checkboxes = document.querySelectorAll('.link-checkbox:checked');
+    const deleteBtn = document.getElementById('delete-selected-btn');
+
+    if (checkboxes.length > 0) {
+        deleteBtn.style.display = 'inline-block';
+        deleteBtn.textContent = `Delete Selected (${checkboxes.length})`;
+    } else {
+        deleteBtn.style.display = 'none';
+    }
+}
+
+function deleteSelected() {
+    const checkboxes = document.querySelectorAll('.link-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('Please select at least one link to delete.');
+        return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${checkboxes.length} selected link(s)? This action cannot be undone.`)) {
+        document.getElementById('bulk-delete-form').submit();
+    }
 }
 </script>
 

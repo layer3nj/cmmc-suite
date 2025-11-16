@@ -89,6 +89,7 @@ class Application
             $this->router->post('/home/links/create', 'App\Controllers\HomeController@createLink');
             $this->router->post('/home/links/{id}/update', 'App\Controllers\HomeController@updateLink');
             $this->router->post('/home/links/{id}/delete', 'App\Controllers\HomeController@deleteLink');
+            $this->router->post('/home/links/delete-multiple', 'App\Controllers\HomeController@deleteMultiple');
 
             // Compliance Dashboard
             $this->router->get('/dashboard', 'App\Controllers\DashboardController@index');

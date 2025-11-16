@@ -176,4 +176,38 @@ class HomeController
         Session::flash('success', 'Quick link deleted successfully.');
         return Response::redirect($request->baseUrl() . '/home/links');
     }
+
+    public function deleteMultiple(Request $request): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $roleCheck = AuthMiddleware::requireRole('admin');
+        if ($roleCheck) return $roleCheck;
+
+        Session::start();
+
+        if (!Csrf::validate($request)) {
+            Session::flash('error', 'Invalid security token.');
+            return Response::redirect($request->baseUrl() . '/home/links');
+        }
+
+        $linkIds = $request->post('link_ids', []);
+
+        if (empty($linkIds) || !is_array($linkIds)) {
+            Session::flash('error', 'No links selected for deletion.');
+            return Response::redirect($request->baseUrl() . '/home/links');
+        }
+
+        // Delete all selected links
+        $count = 0;
+        foreach ($linkIds as $linkId) {
+            $this->db->query("DELETE FROM quick_links WHERE id = ?", [$linkId]);
+            AuditLogger::log('delete', 'quick_link', $linkId, null, $request->ip());
+            $count++;
+        }
+
+        Session::flash('success', "Successfully deleted {$count} quick link(s).");
+        return Response::redirect($request->baseUrl() . '/home/links');
+    }
 }

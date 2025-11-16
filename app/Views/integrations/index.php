@@ -8,6 +8,9 @@ ob_start();
 <div class="page-header">
     <h1>Integrations</h1>
     <p class="page-subtitle">Connect with Autotask and ITGlue</p>
+    <div class="page-actions">
+        <a href="<?= $url('integrations/client-mapping') ?>" class="btn btn-primary">Manage Client Mappings</a>
+    </div>
 </div>
 
 <div class="integrations-grid">

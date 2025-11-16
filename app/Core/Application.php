@@ -194,6 +194,10 @@ class Application
             $this->router->post('/integrations/autotask/sync', 'App\Controllers\IntegrationController@autotaskSync');
             $this->router->post('/integrations/itglue/connect', 'App\Controllers\IntegrationController@itglueConnect');
             $this->router->post('/integrations/itglue/sync', 'App\Controllers\IntegrationController@itglueSync');
+            $this->router->get('/integrations/client-mapping', 'App\Controllers\IntegrationController@clientMapping');
+            $this->router->post('/integrations/fetch-clients', 'App\Controllers\IntegrationController@fetchClients');
+            $this->router->post('/integrations/save-mappings', 'App\Controllers\IntegrationController@saveMappings');
+            $this->router->post('/integrations/sync-mapped-clients', 'App\Controllers\IntegrationController@syncMappedClients');
 
             // Admin
             $this->router->get('/admin', 'App\Controllers\AdminController@index');

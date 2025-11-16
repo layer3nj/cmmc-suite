@@ -125,26 +125,26 @@ class AdminDashboardController
         // Count policies by status
         $approved = $this->db->fetchColumn(
             "SELECT COUNT(*) FROM policies
-             WHERE customer_id = ? AND status = 'approved'",
+             WHERE client_id = ? AND status = 'approved'",
             [$clientId]
         ) ?: 0;
 
         $inReview = $this->db->fetchColumn(
             "SELECT COUNT(*) FROM policies
-             WHERE customer_id = ? AND status = 'in_review'",
+             WHERE client_id = ? AND status = 'in_review'",
             [$clientId]
         ) ?: 0;
 
         $draft = $this->db->fetchColumn(
             "SELECT COUNT(*) FROM policies
-             WHERE customer_id = ? AND status = 'draft'",
+             WHERE client_id = ? AND status = 'draft'",
             [$clientId]
         ) ?: 0;
 
         // Count outdated policies (approved more than 1 year ago and not reviewed)
         $outdated = $this->db->fetchColumn(
             "SELECT COUNT(*) FROM policies
-             WHERE customer_id = ?
+             WHERE client_id = ?
              AND status = 'approved'
              AND approved_at < DATE_SUB(NOW(), INTERVAL 1 YEAR)
              AND (last_reviewed_at IS NULL OR last_reviewed_at < DATE_SUB(NOW(), INTERVAL 1 YEAR))",
@@ -199,25 +199,31 @@ class AdminDashboardController
             [$clientId]
         );
 
-        // If stats aren't populated, calculate them from users table
+        // If stats aren't populated, calculate them from user_client_access table
         if ($client['total_users'] == 0) {
             $totalUsers = $this->db->fetchColumn(
-                "SELECT COUNT(*) FROM users WHERE customer_id = ?",
+                "SELECT COUNT(DISTINCT uca.user_id)
+                 FROM user_client_access uca
+                 WHERE uca.client_id = ?",
                 [$clientId]
             ) ?: 0;
 
             $activeUsers = $this->db->fetchColumn(
-                "SELECT COUNT(*) FROM users
-                 WHERE customer_id = ?
-                 AND last_login_at IS NOT NULL
-                 AND last_login_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
+                "SELECT COUNT(DISTINCT uca.user_id)
+                 FROM user_client_access uca
+                 JOIN users u ON uca.user_id = u.id
+                 WHERE uca.client_id = ?
+                 AND u.last_login_at IS NOT NULL
+                 AND u.last_login_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
                 [$clientId]
             ) ?: 0;
 
             $neverLoggedIn = $this->db->fetchColumn(
-                "SELECT COUNT(*) FROM users
-                 WHERE customer_id = ?
-                 AND last_login_at IS NULL",
+                "SELECT COUNT(DISTINCT uca.user_id)
+                 FROM user_client_access uca
+                 JOIN users u ON uca.user_id = u.id
+                 WHERE uca.client_id = ?
+                 AND u.last_login_at IS NULL",
                 [$clientId]
             ) ?: 0;
 

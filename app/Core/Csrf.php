@@ -14,6 +14,7 @@ class Csrf
         if (!Session::has(self::TOKEN_NAME)) {
             $token = bin2hex(random_bytes(32));
             Session::set(self::TOKEN_NAME, $token);
+            error_log('CSRF: Generated new token: ' . substr($token, 0, 16) . '... (Session ID: ' . session_id() . ')');
         }
 
         return Session::get(self::TOKEN_NAME);

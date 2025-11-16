@@ -135,7 +135,11 @@ class IntegrationController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            error_log('Autotask Sync CSRF validation failed');
+            error_log('Session ID: ' . session_id());
+            error_log('Session data: ' . json_encode($_SESSION));
+            error_log('POST data: ' . json_encode($request->post()));
+            return Response::json(['success' => false, 'message' => 'Invalid security token. Please refresh the page and try again.']);
         }
 
         // Get Autotask config
@@ -282,7 +286,11 @@ class IntegrationController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            error_log('ITGlue Sync CSRF validation failed');
+            error_log('Session ID: ' . session_id());
+            error_log('Session data: ' . json_encode($_SESSION));
+            error_log('POST data: ' . json_encode($request->post()));
+            return Response::json(['success' => false, 'message' => 'Invalid security token. Please refresh the page and try again.']);
         }
 
         // Get ITGlue config

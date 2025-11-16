@@ -24,17 +24,23 @@ define('VENDOR_PATH', BASE_PATH . '/vendor');
 require_once BASE_PATH . '/app/Core/Autoloader.php';
 App\Core\Autoloader::register();
 
-// Start session with security settings
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? '1' : '0');
-ini_set('session.cookie_samesite', 'Lax'); // Lax allows SAML/SSO redirects while still protecting against CSRF
-ini_set('session.use_strict_mode', '1');
-ini_set('session.save_path', STORAGE_PATH . '/sessions');
-
 // Create session directory if it doesn't exist
 if (!is_dir(STORAGE_PATH . '/sessions')) {
     mkdir(STORAGE_PATH . '/sessions', 0770, true);
 }
+
+// Start session with security settings
+// Must be set before session_start()
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Lax' // Lax allows SAML/SSO redirects while still protecting against CSRF
+]);
+ini_set('session.use_strict_mode', '1');
+ini_set('session.save_path', STORAGE_PATH . '/sessions');
 
 // Start session using Session class to ensure proper initialization
 App\Core\Session::start();

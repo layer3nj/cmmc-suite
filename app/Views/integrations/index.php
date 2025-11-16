@@ -44,7 +44,7 @@ ob_start();
                 </div>
             </div>
             <div class="integration-actions">
-                <form action="<?= $url('integrations/autotask/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="autotask">
+                <form action="<?= $url('integrations/autotask/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="autotask" autocomplete="off" onsubmit="return validateCsrfToken(this, 'autotask');">
                     <?= $csrf() ?>
                     <button type="submit" class="btn btn-primary">Sync Now</button>
                 </form>
@@ -113,7 +113,7 @@ ob_start();
                 </div>
             </div>
             <div class="integration-actions">
-                <form action="<?= $url('integrations/itglue/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="itglue">
+                <form action="<?= $url('integrations/itglue/sync') ?>" method="POST" style="display: inline;" class="sync-form" data-sync-type="itglue" autocomplete="off" onsubmit="return validateCsrfToken(this, 'itglue');">
                     <?= $csrf() ?>
                     <button type="submit" class="btn btn-primary">Sync Now</button>
                 </form>
@@ -150,44 +150,62 @@ ob_start();
 </div>
 
 <script>
-// Fix CSRF token issue - ensure correct field is submitted
-document.addEventListener('DOMContentLoaded', function() {
-    const syncForms = document.querySelectorAll('.sync-form');
+// CSRF token validation function - called inline from form onsubmit handlers
+function validateCsrfToken(form, syncType) {
+    console.log('=== CSRF VALIDATION START ===');
+    console.log('validateCsrfToken() called for:', syncType);
+    console.log('Form:', form);
 
-    syncForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            console.log('Sync form submitting for:', form.dataset.syncType);
-
-            // Find the correct CSRF field
-            const csrfField = form.querySelector('input[name="_csrf_token"]');
-
-            if (!csrfField) {
-                console.error('CSRF token field _csrf_token not found!');
-                alert('Security token missing. Please refresh the page.');
-                e.preventDefault();
-                return false;
-            }
-
-            if (!csrfField.value || csrfField.value === '') {
-                console.error('CSRF token value is empty!');
-                alert('Security token is empty. Please refresh the page.');
-                e.preventDefault();
-                return false;
-            }
-
-            console.log('CSRF token found:', csrfField.value.substring(0, 16) + '...');
-
-            // Remove any duplicate csrf_token fields (without underscore)
-            const wrongFields = form.querySelectorAll('input[name="csrf_token"]');
-            wrongFields.forEach(field => {
-                console.log('Removing duplicate csrf_token field (no underscore)');
-                field.remove();
-            });
-
-            console.log('Form validated, submitting...');
-        });
+    // Log all inputs before validation
+    console.log('All form inputs:');
+    form.querySelectorAll('input').forEach(function(input) {
+        console.log('  Input:', input.name, '=', input.value ? input.value.substring(0, 20) + '...' : '(empty)');
     });
-});
+
+    // Find the correct CSRF field
+    const csrfField = form.querySelector('input[name="_csrf_token"]');
+    console.log('Looking for input[name="_csrf_token"]:', csrfField);
+
+    if (!csrfField) {
+        console.error('CSRF token field _csrf_token not found!');
+        alert('Security token missing. Please refresh the page and try again.');
+        return false; // Prevent form submission
+    }
+
+    console.log('CSRF field found, value:', csrfField.value ? csrfField.value.substring(0, 16) + '...' : 'EMPTY');
+
+    if (!csrfField.value || csrfField.value === '') {
+        console.error('CSRF token value is empty!');
+        alert('Security token is empty. Please refresh the page and try again.');
+        return false; // Prevent form submission
+    }
+
+    // Remove any duplicate csrf_token fields (without underscore)
+    const wrongFields = form.querySelectorAll('input[name="csrf_token"]');
+    if (wrongFields.length > 0) {
+        console.warn('Found', wrongFields.length, 'duplicate csrf_token fields (no underscore) - removing them');
+        wrongFields.forEach(function(field) {
+            console.log('  Removing duplicate csrf_token field with value:', field.value);
+            field.remove();
+        });
+    }
+
+    console.log('CSRF token validated successfully:', csrfField.value.substring(0, 16) + '...');
+    console.log('Form validation passed, allowing submission...');
+
+    // Log all inputs after cleanup
+    console.log('All form inputs after cleanup:');
+    form.querySelectorAll('input').forEach(function(input) {
+        console.log('  Input:', input.name, '=', input.value ? input.value.substring(0, 20) + '...' : '(empty)');
+    });
+
+    console.log('=== CSRF VALIDATION END ===');
+
+    return true; // Allow form submission
+}
+
+// Also log when the script loads
+console.log('CSRF validation script loaded successfully');
 </script>
 
 <?php

@@ -201,6 +201,10 @@ class Application
             $this->router->post('/admin/run-seeders', 'App\Controllers\AdminController@runSeeders');
             $this->router->post('/admin/update-sprs-scores', 'App\Controllers\AdminController@updateSprsScores');
             $this->router->post('/admin/update-categories', 'App\Controllers\AdminController@updateCategories');
+
+            // Admin Dashboard - Customers Overview
+            $this->router->get('/admin/customers', 'App\Controllers\AdminDashboardController@customersOverview');
+            $this->router->get('/admin/customers/search', 'App\Controllers\AdminDashboardController@searchCustomers');
         }
     }
 

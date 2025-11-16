@@ -52,18 +52,31 @@ ob_start();
             <th>Autotask Company ID</th>
             <td>
                 <?= $e($client['autotask_company_id'] ?? '-') ?>
+                <?php
+                // Debug output
+                error_log('DEBUG Autotask Button Visibility:');
+                error_log('  client[autotask_company_id]: ' . ($client['autotask_company_id'] ?? 'NULL'));
+                error_log('  autotask_config exists: ' . (!empty($autotask_config) ? 'YES' : 'NO'));
+                if (!empty($autotask_config)) {
+                    error_log('  autotask_config[api_url]: ' . ($autotask_config['api_url'] ?? 'NULL'));
+                }
+                ?>
                 <?php if (!empty($client['autotask_company_id']) && !empty($autotask_config)): ?>
                     <?php
                     // Extract Autotask instance from API URL (e.g., webservices2.autotask.net -> ww2)
                     $autotaskUrl = $autotask_config['api_url'] ?? '';
+                    error_log('  Checking regex match against: ' . $autotaskUrl);
                     if (preg_match('/webservices(\d+)\.autotask\.net/', $autotaskUrl, $matches)) {
+                        error_log('  Regex matched! Instance: ww' . $matches[1]);
                         $instance = 'ww' . $matches[1];
                         $autotaskLink = "https://{$instance}.autotask.net/Autotask/AutotaskExtend/ExecuteCommand.aspx?Code=OpenAccount&AccountID={$client['autotask_company_id']}";
                     ?>
                         <a href="<?= $e($autotaskLink) ?>" target="_blank" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
                             View in Autotask
                         </a>
-                    <?php } ?>
+                    <?php } else {
+                        error_log('  Regex did NOT match');
+                    } ?>
                 <?php endif; ?>
             </td>
         </tr>
@@ -71,8 +84,17 @@ ob_start();
             <th>ITGlue Organization ID</th>
             <td>
                 <?= $e($client['itglue_organization_id'] ?? '-') ?>
+                <?php
+                // Debug output
+                error_log('DEBUG ITGlue Button Visibility:');
+                error_log('  client[itglue_organization_id]: ' . ($client['itglue_organization_id'] ?? 'NULL'));
+                error_log('  itglue_config exists: ' . (!empty($itglue_config) ? 'YES' : 'NO'));
+                ?>
                 <?php if (!empty($client['itglue_organization_id']) && !empty($itglue_config)): ?>
-                    <?php $itglueLink = "https://app.itglue.com/{$client['itglue_organization_id']}/overview"; ?>
+                    <?php
+                    error_log('  ITGlue button should be visible');
+                    $itglueLink = "https://app.itglue.com/{$client['itglue_organization_id']}/overview";
+                    ?>
                     <a href="<?= $e($itglueLink) ?>" target="_blank" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
                         View in ITGlue
                     </a>

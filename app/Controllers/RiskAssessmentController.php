@@ -248,7 +248,7 @@ class RiskAssessmentController
 
         if ($existing) {
             // Update existing response
-            $this->db->update('risk_assessment_responses', $existing['id'], [
+            $this->db->update('risk_assessment_responses', [
                 'response_value' => $responseValue,
                 'likelihood' => $likelihood,
                 'impact' => $impact,
@@ -256,7 +256,7 @@ class RiskAssessmentController
                 'risk_level' => $riskLevel,
                 'notes' => $notes,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+            ], 'id = :id', [':id' => $existing['id']]);
         } else {
             // Create new response
             $this->db->insert('risk_assessment_responses', [
@@ -304,11 +304,11 @@ class RiskAssessmentController
         }
 
         // Update assessment status
-        $this->db->update('risk_assessments', $id, [
+        $this->db->update('risk_assessments', [
             'status' => 'completed',
             'completed_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        ], 'id = :id', [':id' => $id]);
 
         AuditLogger::log('complete', 'risk_assessment', $id, [], $request->ip());
 
@@ -442,13 +442,13 @@ class RiskAssessmentController
         );
 
         if ($stats) {
-            $this->db->update('risk_assessments', $assessmentId, [
+            $this->db->update('risk_assessments', [
                 'overall_risk_score' => round($stats['avg_score'] ?? 0, 2),
                 'high_risks' => ($stats['critical_count'] ?? 0) + ($stats['high_count'] ?? 0),
                 'medium_risks' => $stats['medium_count'] ?? 0,
                 'low_risks' => $stats['low_count'] ?? 0,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+            ], 'id = :id', [':id' => $assessmentId]);
         }
     }
 }

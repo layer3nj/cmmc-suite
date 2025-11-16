@@ -85,7 +85,7 @@ class IntegrationController
                 'api_secret' => $apiSecret,
                 'enabled' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ], 'id = ?', [$existing['id']]);
+            ], 'id = :id', [':id' => $existing['id']]);
         } else {
             $this->db->insert('integrations', [
                 'provider' => 'autotask',
@@ -168,7 +168,7 @@ class IntegrationController
                 'last_sync_at' => date('Y-m-d H:i:s'),
                 'sync_status' => 'success',
                 'sync_message' => "Synced $synced, skipped $skipped existing",
-            ], 'provider = ?', ['autotask']);
+            ], 'provider = :provider', [':provider' => 'autotask']);
 
             AuditLogger::log('integration_sync', 'integration', null, [
                 'provider' => 'autotask',
@@ -186,7 +186,7 @@ class IntegrationController
                 'last_sync_at' => date('Y-m-d H:i:s'),
                 'sync_status' => 'error',
                 'sync_message' => $e->getMessage(),
-            ], 'provider = ?', ['autotask']);
+            ], 'provider = :provider', [':provider' => 'autotask']);
 
             return Response::json([
                 'success' => false,
@@ -230,7 +230,7 @@ class IntegrationController
                 'api_key' => $apiKey,
                 'enabled' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
-            ], 'id = ?', [$existing['id']]);
+            ], 'id = :id', [':id' => $existing['id']]);
         } else {
             $this->db->insert('integrations', [
                 'provider' => 'itglue',
@@ -312,7 +312,7 @@ class IntegrationController
                 'last_sync_at' => date('Y-m-d H:i:s'),
                 'sync_status' => 'success',
                 'sync_message' => "Synced $synced, skipped $skipped existing",
-            ], 'provider = ?', ['itglue']);
+            ], 'provider = :provider', [':provider' => 'itglue']);
 
             AuditLogger::log('integration_sync', 'integration', null, [
                 'provider' => 'itglue',
@@ -330,7 +330,7 @@ class IntegrationController
                 'last_sync_at' => date('Y-m-d H:i:s'),
                 'sync_status' => 'error',
                 'sync_message' => $e->getMessage(),
-            ], 'provider = ?', ['itglue']);
+            ], 'provider = :provider', [':provider' => 'itglue']);
 
             return Response::json([
                 'success' => false,

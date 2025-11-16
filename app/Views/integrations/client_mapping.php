@@ -130,6 +130,9 @@ ob_start();
     </div>
 <?php endif; ?>
 
+<!-- Hidden CSRF token for AJAX requests -->
+<input type="hidden" id="csrf-token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+
 <script>
 function toggleClientSelect(mappingId) {
     const actionSelect = document.querySelector(`select[name="mapping_action[${mappingId}]"]`);
@@ -150,6 +153,8 @@ function syncMappedClients() {
     }
 
     const btn = document.getElementById('sync-btn');
+    const csrfToken = document.getElementById('csrf-token').value;
+
     btn.disabled = true;
     btn.textContent = 'Syncing...';
 
@@ -159,7 +164,7 @@ function syncMappedClients() {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-            'csrf_token': '<?= $_SESSION['csrf_token'] ?? '' ?>'
+            'csrf_token': csrfToken
         })
     })
     .then(response => response.json())

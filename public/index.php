@@ -36,7 +36,8 @@ if (!is_dir(STORAGE_PATH . '/sessions')) {
     mkdir(STORAGE_PATH . '/sessions', 0770, true);
 }
 
-session_start();
+// Start session using Session class to ensure proper initialization
+App\Core\Session::start();
 
 // Check if installed
 $envFile = CONFIG_PATH . '/.env.php';

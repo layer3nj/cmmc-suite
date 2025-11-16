@@ -109,11 +109,9 @@ function deleteAssessment(id) {
     fetch('<?= $url('risk-assessments') ?>/' + id + '/delete', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-            csrf_token: '<?= $csrf() ?>'
-        })
+        body: '_csrf_token=<?= $csrf() ?>'
     })
     .then(response => response.json())
     .then(data => {

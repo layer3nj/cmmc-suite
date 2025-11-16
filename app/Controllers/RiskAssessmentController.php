@@ -419,7 +419,7 @@ class RiskAssessmentController
             return Response::json(['success' => false, 'message' => 'Assessment not found']);
         }
 
-        $this->db->delete('risk_assessments', $id);
+        $this->db->delete('risk_assessments', 'id = :id', [':id' => $id]);
 
         AuditLogger::log('delete', 'risk_assessment', $id, [], $request->ip());
 

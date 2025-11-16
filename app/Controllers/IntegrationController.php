@@ -40,13 +40,22 @@ class IntegrationController
             "SELECT * FROM integrations WHERE provider = 'itglue'"
         );
 
+        // Prepare view variables
+        $autotask_connected = $autotask && $autotask['enabled'];
+        $autotask_config = $autotask ?: [];
+        $autotask_last_sync = $autotask['last_sync_at'] ?? null;
+
+        $itglue_connected = $itglue && $itglue['enabled'];
+        $itglue_config = $itglue ?: [];
+        $itglue_last_sync = $itglue['last_sync_at'] ?? null;
+
         $content = View::render('integrations/index', [
-            'autotask_connected' => $autotask && $autotask['enabled'],
-            'autotask_config' => $autotask ?: [],
-            'autotask_last_sync' => $autotask['last_sync_at'] ?? null,
-            'itglue_connected' => $itglue && $itglue['enabled'],
-            'itglue_config' => $itglue ?: [],
-            'itglue_last_sync' => $itglue['last_sync_at'] ?? null,
+            'autotask_connected' => $autotask_connected,
+            'autotask_config' => $autotask_config,
+            'autotask_last_sync' => $autotask_last_sync,
+            'itglue_connected' => $itglue_connected,
+            'itglue_config' => $itglue_config,
+            'itglue_last_sync' => $itglue_last_sync,
         ]);
 
         return new Response($content);

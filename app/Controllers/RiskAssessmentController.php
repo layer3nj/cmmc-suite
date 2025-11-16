@@ -204,7 +204,13 @@ class RiskAssessmentController
 
         Session::start();
 
+        // Debug logging
+        error_log("SaveResponse - POST data: " . json_encode($request->post()));
+        error_log("SaveResponse - Session token: " . Session::get('_csrf_token'));
+        error_log("SaveResponse - Content-Type: " . ($_SERVER['CONTENT_TYPE'] ?? 'none'));
+
         if (!Csrf::validate($request)) {
+            error_log("CSRF validation failed in saveResponse");
             return Response::json(['success' => false, 'message' => 'Invalid security token']);
         }
 
@@ -403,7 +409,13 @@ class RiskAssessmentController
 
         Session::start();
 
+        // Debug logging
+        error_log("Delete request - POST data: " . json_encode($request->post()));
+        error_log("Delete request - Session token: " . Session::get('_csrf_token'));
+        error_log("Delete request - Content-Type: " . ($_SERVER['CONTENT_TYPE'] ?? 'none'));
+
         if (!Csrf::validate($request)) {
+            error_log("CSRF validation failed");
             return Response::json(['success' => false, 'message' => 'Invalid security token']);
         }
 

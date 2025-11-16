@@ -38,7 +38,9 @@ class Csrf
     public static function field(): string
     {
         $token = self::generateToken();
-        return '<input type="hidden" name="' . self::TOKEN_NAME . '" value="' . htmlspecialchars($token) . '">';
+        $html = '<input type="hidden" name="' . self::TOKEN_NAME . '" value="' . htmlspecialchars($token) . '">';
+        error_log('CSRF: Generated field HTML for page render (token: ' . substr($token, 0, 16) . '..., session: ' . session_id() . ')');
+        return $html;
     }
 
     public static function validate(Request $request): bool

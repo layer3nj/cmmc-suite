@@ -285,6 +285,16 @@ class IntegrationController
 
         Session::start();
 
+        // Debug: Log raw POST data
+        error_log('ITGlue Sync - Raw $_POST: ' . json_encode($_POST));
+        error_log('ITGlue Sync - $_POST keys: ' . implode(', ', array_keys($_POST)));
+        if (isset($_POST['_csrf_token'])) {
+            error_log('ITGlue Sync - $_POST[_csrf_token] exists: ' . substr($_POST['_csrf_token'], 0, 16) . '...');
+        }
+        if (isset($_POST['csrf_token'])) {
+            error_log('ITGlue Sync - $_POST[csrf_token] exists: ' . ($_POST['csrf_token'] === '' ? 'EMPTY STRING' : substr($_POST['csrf_token'], 0, 16) . '...'));
+        }
+
         if (!Csrf::validate($request)) {
             error_log('ITGlue Sync CSRF validation failed');
             error_log('Session ID: ' . session_id());

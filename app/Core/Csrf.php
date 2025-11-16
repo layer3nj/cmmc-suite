@@ -43,6 +43,18 @@ class Csrf
     public static function validate(Request $request): bool
     {
         $token = $request->post(self::TOKEN_NAME);
-        return self::validateToken($token);
+        $sessionToken = Session::get(self::TOKEN_NAME);
+
+        // Debug logging
+        error_log('CSRF Validation Debug:');
+        error_log('  Submitted token: ' . ($token ? substr($token, 0, 16) . '...' : 'NULL'));
+        error_log('  Session token: ' . ($sessionToken ? substr($sessionToken, 0, 16) . '...' : 'NULL'));
+        error_log('  Session ID: ' . session_id());
+        error_log('  POST data keys: ' . implode(', ', array_keys($request->post())));
+
+        $result = self::validateToken($token);
+        error_log('  Validation result: ' . ($result ? 'PASS' : 'FAIL'));
+
+        return $result;
     }
 }

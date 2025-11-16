@@ -20,8 +20,30 @@ class Request
         $this->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $this->server = $_SERVER;
         $this->query = $_GET;
-        $this->post = $_POST;
         $this->files = $_FILES;
+
+        // Parse POST data
+        $this->post = $_POST;
+
+        // If POST is empty but we have a request body, parse it
+        if (empty($this->post) && $this->method === 'POST') {
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            $rawInput = file_get_contents('php://input');
+
+            if (!empty($rawInput)) {
+                // Handle application/x-www-form-urlencoded
+                if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+                    parse_str($rawInput, $this->post);
+                }
+                // Handle application/json
+                elseif (str_contains($contentType, 'application/json')) {
+                    $decoded = json_decode($rawInput, true);
+                    if (is_array($decoded)) {
+                        $this->post = $decoded;
+                    }
+                }
+            }
+        }
 
         // Parse path
         $requestUri = $_SERVER['REQUEST_URI'] ?? '/';

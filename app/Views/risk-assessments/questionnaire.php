@@ -240,7 +240,7 @@ function saveResponse(questionId, responseValue, likelihood, impact) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-            csrf_token: '<?= $csrf() ?>',
+            _csrf_token: '<?= $csrf() ?>',
             question_id: questionId,
             response_value: responseValue,
             likelihood: likelihood,

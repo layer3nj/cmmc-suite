@@ -74,7 +74,7 @@ ob_start();
                 </div>
                 <div class="form-group">
                     <label>Integration Code</label>
-                    <input type="text" name="integration_code" value="<?= $e($autotask_config['integration_code'] ?? '') ?>" required class="form-control">
+                    <input type="text" name="integration_code" value="<?= $e($autotask_config['api_key'] ?? '') ?>" required class="form-control">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('autotask-form').style.display='none'">Cancel</button>

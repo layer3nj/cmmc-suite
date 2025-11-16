@@ -41,8 +41,12 @@ class IntegrationController
         );
 
         $content = View::render('integrations/index', [
-            'autotask' => $autotask,
-            'itglue' => $itglue,
+            'autotask_connected' => $autotask && $autotask['enabled'],
+            'autotask_config' => $autotask ?: [],
+            'autotask_last_sync' => $autotask['last_sync_at'] ?? null,
+            'itglue_connected' => $itglue && $itglue['enabled'],
+            'itglue_config' => $itglue ?: [],
+            'itglue_last_sync' => $itglue['last_sync_at'] ?? null,
         ]);
 
         return new Response($content);
@@ -59,18 +63,21 @@ class IntegrationController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/integrations');
         }
 
         $apiUrl = $request->post('api_url');
         $username = $request->post('username');
-        $apiSecret = $request->post('api_secret');
+        $apiSecret = $request->post('secret');
+        $integrationCode = $request->post('integration_code');
 
-        // Test connection (simplified - real implementation would use cURL)
-        $testResult = $this->testAutotaskConnection($apiUrl, $username, $apiSecret);
+        // Test connection
+        $testResult = $this->testAutotaskConnection($apiUrl, $username, $apiSecret, $integrationCode);
 
         if (!$testResult) {
-            return Response::json(['success' => false, 'message' => 'Connection test failed']);
+            Session::flash('error', 'Connection test failed. Please check your credentials.');
+            return Response::redirect($request->baseUrl() . '/integrations');
         }
 
         // Save or update integration
@@ -83,6 +90,7 @@ class IntegrationController
                 'api_url' => $apiUrl,
                 'username' => $username,
                 'api_secret' => $apiSecret,
+                'api_key' => $integrationCode,
                 'enabled' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
             ], 'id = :id', [':id' => $existing['id']]);
@@ -92,6 +100,7 @@ class IntegrationController
                 'api_url' => $apiUrl,
                 'username' => $username,
                 'api_secret' => $apiSecret,
+                'api_key' => $integrationCode,
                 'enabled' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
@@ -102,7 +111,8 @@ class IntegrationController
             'provider' => 'autotask'
         ], $request->ip());
 
-        return Response::json(['success' => true, 'message' => 'Autotask connected successfully']);
+        Session::flash('success', 'Autotask connected successfully');
+        return Response::redirect($request->baseUrl() . '/integrations');
     }
 
     public function autotaskSync(Request $request): Response
@@ -206,7 +216,8 @@ class IntegrationController
         Session::start();
 
         if (!Csrf::validate($request)) {
-            return Response::json(['success' => false, 'message' => 'Invalid security token']);
+            Session::flash('error', 'Invalid security token');
+            return Response::redirect($request->baseUrl() . '/integrations');
         }
 
         $apiUrl = $request->post('api_url');
@@ -216,7 +227,8 @@ class IntegrationController
         $testResult = $this->testITGlueConnection($apiUrl, $apiKey);
 
         if (!$testResult) {
-            return Response::json(['success' => false, 'message' => 'Connection test failed']);
+            Session::flash('error', 'Connection test failed. Please check your API key.');
+            return Response::redirect($request->baseUrl() . '/integrations');
         }
 
         // Save or update integration
@@ -246,7 +258,8 @@ class IntegrationController
             'provider' => 'itglue'
         ], $request->ip());
 
-        return Response::json(['success' => true, 'message' => 'ITGlue connected successfully']);
+        Session::flash('success', 'ITGlue connected successfully');
+        return Response::redirect($request->baseUrl() . '/integrations');
     }
 
     public function itglueSync(Request $request): Response
@@ -339,15 +352,16 @@ class IntegrationController
         }
     }
 
-    private function testAutotaskConnection(string $apiUrl, string $username, string $apiSecret): bool
+    private function testAutotaskConnection(string $apiUrl, string $username, string $apiSecret, string $integrationCode): bool
     {
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, rtrim($apiUrl, '/') . '/v1.0/Companies/query?search={"filter":[{"field":"id","op":"gt","value":0}]}&pagesize=1');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'ApiIntegrationCode: ' . $apiSecret,
+                'ApiIntegrationCode: ' . $integrationCode,
                 'UserName: ' . $username,
+                'Secret: ' . $apiSecret,
                 'Content-Type: application/json'
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -396,8 +410,9 @@ class IntegrationController
             curl_setopt($ch, CURLOPT_URL, rtrim($config['api_url'], '/') . '/v1.0/Companies/query?search={"filter":[{"field":"isActive","op":"eq","value":true}]}&pagesize=' . $pageSize);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'ApiIntegrationCode: ' . $config['api_secret'],
+                'ApiIntegrationCode: ' . $config['api_key'],
                 'UserName: ' . $config['username'],
+                'Secret: ' . $config['api_secret'],
                 'Content-Type: application/json'
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);

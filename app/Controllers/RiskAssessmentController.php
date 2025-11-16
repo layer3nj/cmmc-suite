@@ -42,14 +42,14 @@ class RiskAssessmentController
             "SELECT ra.*, u.display_name as created_by_name
              FROM risk_assessments ra
              LEFT JOIN users u ON ra.created_by = u.id
-             WHERE ra.customer_id = ?
+             WHERE ra.client_id = ?
              ORDER BY ra.created_at DESC",
             [$customerId]
         );
 
         // Get customer name
         $customer = $this->db->fetchOne(
-            "SELECT name FROM customers WHERE id = ?",
+            "SELECT name FROM clients WHERE id = ?",
             [$customerId]
         );
 
@@ -114,7 +114,7 @@ class RiskAssessmentController
 
         // Create assessment
         $assessmentId = $this->db->insert('risk_assessments', [
-            'customer_id' => $customerId,
+            'client_id' => $customerId,
             'title' => $title,
             'description' => $description,
             'status' => 'in_progress',
@@ -125,7 +125,7 @@ class RiskAssessmentController
 
         AuditLogger::log('create', 'risk_assessment', $assessmentId, [
             'title' => $title,
-            'customer_id' => $customerId
+            'client_id' => $customerId
         ], $request->ip());
 
         Session::flash('success', 'Risk assessment created successfully.');
@@ -142,7 +142,7 @@ class RiskAssessmentController
 
         // Get assessment
         $assessment = $this->db->fetchOne(
-            "SELECT * FROM risk_assessments WHERE id = ? AND customer_id = ?",
+            "SELECT * FROM risk_assessments WHERE id = ? AND client_id = ?",
             [$id, $customerId]
         );
 
@@ -212,7 +212,7 @@ class RiskAssessmentController
 
         // Verify assessment exists and belongs to customer
         $assessment = $this->db->fetchOne(
-            "SELECT * FROM risk_assessments WHERE id = ? AND customer_id = ?",
+            "SELECT * FROM risk_assessments WHERE id = ? AND client_id = ?",
             [$id, $customerId]
         );
 
@@ -295,7 +295,7 @@ class RiskAssessmentController
 
         // Verify assessment
         $assessment = $this->db->fetchOne(
-            "SELECT * FROM risk_assessments WHERE id = ? AND customer_id = ?",
+            "SELECT * FROM risk_assessments WHERE id = ? AND client_id = ?",
             [$id, $customerId]
         );
 
@@ -328,9 +328,9 @@ class RiskAssessmentController
         $assessment = $this->db->fetchOne(
             "SELECT ra.*, c.name as customer_name, u.display_name as created_by_name
              FROM risk_assessments ra
-             LEFT JOIN customers c ON ra.customer_id = c.id
+             LEFT JOIN clients c ON ra.client_id = c.id
              LEFT JOIN users u ON ra.created_by = u.id
-             WHERE ra.id = ? AND ra.customer_id = ?",
+             WHERE ra.id = ? AND ra.client_id = ?",
             [$id, $customerId]
         );
 
@@ -411,7 +411,7 @@ class RiskAssessmentController
 
         // Verify assessment
         $assessment = $this->db->fetchOne(
-            "SELECT * FROM risk_assessments WHERE id = ? AND customer_id = ?",
+            "SELECT * FROM risk_assessments WHERE id = ? AND client_id = ?",
             [$id, $customerId]
         );
 

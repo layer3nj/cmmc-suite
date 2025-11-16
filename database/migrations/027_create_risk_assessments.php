@@ -11,7 +11,7 @@ return [
         $db->exec("
             CREATE TABLE IF NOT EXISTS risk_assessments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                customer_id INT,
+                client_id INT,
                 title VARCHAR(255) NOT NULL,
                 description TEXT,
                 status ENUM('draft', 'in_progress', 'completed', 'archived') DEFAULT 'draft',
@@ -23,9 +23,9 @@ return [
                 completed_at DATETIME,
                 created_at DATETIME NOT NULL,
                 updated_at DATETIME NOT NULL,
-                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+                FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
                 FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-                INDEX idx_customer (customer_id),
+                INDEX idx_client (client_id),
                 INDEX idx_status (status)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");

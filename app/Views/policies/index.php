@@ -83,9 +83,9 @@ ob_start();
                     <td><?= $e($policy['version'] ?? '1.0') ?></td>
                     <td><?= $policy['last_reviewed_date'] ? date('M d, Y', strtotime($policy['last_reviewed_date'])) : '-' ?></td>
                     <td>
-                        <a href="<?= $url('policies/' . $policy['id']) ?>" class="btn btn-sm btn-primary">View</a>
+                        <a href="<?= $url('policy-templates/' . $policy['id']) ?>" class="btn btn-sm btn-primary">View</a>
                         <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
-                        <a href="<?= $url('policies/' . $policy['id'] . '/edit') ?>" class="btn btn-sm btn-secondary">Edit</a>
+                        <a href="<?= $url('policy-templates/' . $policy['id'] . '/edit') ?>" class="btn btn-sm btn-secondary">Edit</a>
                         <?php endif; ?>
                     </td>
                 </tr>

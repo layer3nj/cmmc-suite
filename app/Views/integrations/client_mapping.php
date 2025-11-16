@@ -131,7 +131,7 @@ ob_start();
 <?php endif; ?>
 
 <!-- Hidden CSRF token for AJAX requests -->
-<input type="hidden" id="csrf-token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+<input type="hidden" id="csrf-token" value="<?= $csrfToken() ?>">
 
 <script>
 function toggleClientSelect(mappingId) {
@@ -164,7 +164,7 @@ function syncMappedClients() {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-            'csrf_token': csrfToken
+            '_csrf_token': csrfToken
         })
     })
     .then(response => response.json())

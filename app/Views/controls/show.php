@@ -123,6 +123,12 @@ ob_start();
             <?= nl2br($e($control['description'])) ?>
         </div>
 
+        <?php if (!empty($control['implementation_guidance'])): ?>
+        <h4 style="color: #4a5568;">How to Implement:</h4>
+        <div style="line-height: 1.8; background: #f0fdf4; padding: 15px; border-left: 4px solid #10b981; margin-bottom: 20px;">
+            <?= nl2br($e($control['implementation_guidance'])) ?>
+        </div>
+        <?php else: ?>
         <h4 style="color: #4a5568;">How to Implement:</h4>
         <div style="line-height: 1.8;">
             <?php
@@ -229,6 +235,54 @@ ob_start();
             echo "</ol>";
             ?>
         </div>
+        <?php endif; ?>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <?php if (!empty($control['who_implements'])): ?>
+            <div style="padding: 15px; background: #eff6ff; border-left: 4px solid #3b82f6;">
+                <strong>👤 Who Implements:</strong>
+                <p style="margin: 5px 0 0 0;"><?= nl2br($e($control['who_implements'])) ?></p>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($control['estimated_effort'])): ?>
+            <div style="padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b;">
+                <strong>⏱️ Estimated Effort:</strong>
+                <p style="margin: 5px 0 0 0;">
+                    <span class="badge badge-<?= $control['estimated_effort'] === 'Low' ? 'success' : ($control['estimated_effort'] === 'High' || $control['estimated_effort'] === 'Very High' ? 'danger' : 'warning') ?>">
+                        <?= $e($control['estimated_effort']) ?>
+                    </span>
+                </p>
+            </div>
+            <?php endif; ?>
+        </div>
+
+        <?php if (!empty($control['tools_needed'])): ?>
+        <div style="margin-top: 20px; padding: 15px; background: #f3e8ff; border-left: 4px solid #a855f7;">
+            <strong>🔧 Tools & Technologies Needed:</strong>
+            <div style="margin-top: 10px;">
+                <?= nl2br($e($control['tools_needed'])) ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($control['common_solutions'])): ?>
+        <div style="margin-top: 20px; padding: 15px; background: #ecfdf5; border-left: 4px solid #10b981;">
+            <strong>✅ Common Solutions:</strong>
+            <div style="margin-top: 10px;">
+                <?= nl2br($e($control['common_solutions'])) ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($control['helpful_resources'])): ?>
+        <div style="margin-top: 20px; padding: 15px; background: #fce7f3; border-left: 4px solid #ec4899;">
+            <strong>📚 Helpful Resources:</strong>
+            <div style="margin-top: 10px;">
+                <?= nl2br($e($control['helpful_resources'])) ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-left: 4px solid #f59e0b;">
             <strong>💡 Tip:</strong> Document everything! Keep records of policies, procedures, implementation details, training records, and any changes made to systems. This documentation is essential for demonstrating compliance during assessments.

@@ -63,7 +63,7 @@ ob_start();
                         <a href="<?= $e($autotaskLink) ?>" target="_blank" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
                             View in Autotask
                         </a>
-                    <?php endif; ?>
+                    <?php } ?>
                 <?php endif; ?>
             </td>
         </tr>

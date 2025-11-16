@@ -43,15 +43,25 @@ class Csrf
 
     public static function validate(Request $request): bool
     {
+        // Try the correct field name first
         $token = $request->post(self::TOKEN_NAME);
+
+        // Fallback: check for field without underscore (browser autocomplete workaround)
+        if (!$token) {
+            $token = $request->post('csrf_token');
+        }
+
         $sessionToken = Session::get(self::TOKEN_NAME);
 
         // Debug logging
         error_log('CSRF Validation Debug:');
+        error_log('  Looking for field: ' . self::TOKEN_NAME);
+        error_log('  POST[_csrf_token]: ' . ($request->post('_csrf_token') ?: 'NOT FOUND'));
+        error_log('  POST[csrf_token]: ' . ($request->post('csrf_token') ?: 'NOT FOUND'));
         error_log('  Submitted token: ' . ($token ? substr($token, 0, 16) . '...' : 'NULL'));
         error_log('  Session token: ' . ($sessionToken ? substr($sessionToken, 0, 16) . '...' : 'NULL'));
         error_log('  Session ID: ' . session_id());
-        error_log('  POST data keys: ' . implode(', ', array_keys($request->post())));
+        error_log('  All POST data: ' . json_encode($request->post()));
 
         $result = self::validateToken($token);
         error_log('  Validation result: ' . ($result ? 'PASS' : 'FAIL'));

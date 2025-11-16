@@ -111,7 +111,7 @@ function deleteAssessment(id) {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: '_csrf_token=<?= $csrf() ?>'
+        body: '_csrf_token=<?= $csrfToken() ?>'
     })
     .then(response => response.json())
     .then(data => {

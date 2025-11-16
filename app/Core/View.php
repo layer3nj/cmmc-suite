@@ -33,6 +33,10 @@ class View
             return Csrf::field();
         };
 
+        $csrfToken = function() {
+            return Csrf::generateToken();
+        };
+
         $old = function($key, $default = '') {
             return Session::getFlash('old_' . $key, $default);
         };

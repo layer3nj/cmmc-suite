@@ -105,7 +105,7 @@ class ExecutiveDashboardController
             $statusClass = 'secondary';
             $daysSinceAssessment = null;
 
-            if ($latestAssessment) {
+            if ($latestAssessment && !empty($latestAssessment['assessed_at'])) {
                 $assessedDate = strtotime($latestAssessment['assessed_at']);
                 $daysSinceAssessment = floor((time() - $assessedDate) / 86400);
 
@@ -331,7 +331,9 @@ class ExecutiveDashboardController
 
         // Sort by date
         usort($activities, function($a, $b) {
-            return strtotime($b['date']) - strtotime($a['date']);
+            $dateA = !empty($a['date']) ? strtotime($a['date']) : 0;
+            $dateB = !empty($b['date']) ? strtotime($b['date']) : 0;
+            return $dateB - $dateA;
         });
 
         return array_slice($activities, 0, 10);

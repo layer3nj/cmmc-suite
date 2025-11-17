@@ -65,6 +65,13 @@
                         <span class="nav-label">Dashboard</span>
                     </a>
 
+                    <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
+                    <a href="<?= $url('executive') ?>" class="nav-item <?= ($current_page ?? '') === 'executive' ? 'active' : '' ?>">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-label">Executive View</span>
+                    </a>
+                    <?php endif; ?>
+
                     <a href="<?= $url('clients') ?>" class="nav-item <?= in_array(($current_page ?? ''), ['customers', 'clients']) ? 'active' : '' ?>">
                         <span class="nav-icon">🏢</span>
                         <span class="nav-label">Clients</span>

@@ -95,6 +95,9 @@ class Application
             $this->router->get('/dashboard', 'App\Controllers\DashboardController@index');
             $this->router->get('/compliance', 'App\Controllers\DashboardController@index');
 
+            // Executive Dashboard
+            $this->router->get('/executive', 'App\Controllers\ExecutiveDashboardController@index');
+
             // Clients (multi-tenant) - New routes
             $this->router->get('/clients', 'App\Controllers\ClientController@index');
             $this->router->get('/clients/create', 'App\Controllers\ClientController@create');

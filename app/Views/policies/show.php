@@ -11,10 +11,13 @@ ob_start();
     </div>
     <h1><?= $e($policy['title']) ?></h1>
     <div class="page-actions">
+        <a href="<?= $url('policy-templates/' . $policy['id'] . '/generate') ?>" class="btn btn-primary">
+            Generate for Clients
+        </a>
         <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
-        <a href="<?= $url('policies/' . $policy['id'] . '/edit') ?>" class="btn btn-secondary">Edit</a>
+        <a href="<?= $url('policy-templates/' . $policy['id'] . '/edit') ?>" class="btn btn-secondary">Edit</a>
         <?php endif; ?>
-        <button onclick="window.print()" class="btn btn-primary">Print / Save as PDF</button>
+        <button onclick="window.print()" class="btn btn-secondary">Print / Save as PDF</button>
     </div>
 </div>
 

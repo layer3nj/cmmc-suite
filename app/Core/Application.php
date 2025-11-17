@@ -179,6 +179,8 @@ class Application
             $this->router->get('/policy-templates/{id}/edit', 'App\Controllers\PolicyController@edit');
             $this->router->post('/policy-templates/{id}', 'App\Controllers\PolicyController@update');
             $this->router->post('/policy-templates/{id}/delete', 'App\Controllers\PolicyController@delete');
+            $this->router->get('/policy-templates/{id}/generate', 'App\Controllers\PolicyController@generateForm');
+            $this->router->post('/policy-templates/{id}/generate', 'App\Controllers\PolicyController@generate');
 
             // Client Policies (Customer-Specific)
             $this->router->get('/policies', 'App\Controllers\ClientPolicyController@index');

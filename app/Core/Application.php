@@ -199,6 +199,12 @@ class Application
             $this->router->post('/integrations/save-mappings', 'App\Controllers\IntegrationController@saveMappings');
             $this->router->post('/integrations/sync-mapped-clients', 'App\Controllers\IntegrationController@syncMappedClients');
 
+            // Bulk Operations
+            $this->router->get('/bulk', 'App\Controllers\BulkOperationsController@index');
+            $this->router->post('/bulk/clone-assessment', 'App\Controllers\BulkOperationsController@cloneAssessment');
+            $this->router->post('/bulk/batch-update-poam', 'App\Controllers\BulkOperationsController@batchUpdatePoam');
+            $this->router->get('/bulk/get-poam-items', 'App\Controllers\BulkOperationsController@getPoamItems');
+
             // Admin
             $this->router->get('/admin', 'App\Controllers\AdminController@index');
             $this->router->get('/admin/users', 'App\Controllers\AdminController@users');

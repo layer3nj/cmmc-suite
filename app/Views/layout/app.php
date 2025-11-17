@@ -116,6 +116,14 @@
                     </a>
 
                     <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
+                    <a href="<?= $url('bulk') ?>" class="nav-item <?= ($current_page ?? '') === 'bulk' ? 'active' : '' ?>">
+                        <span class="nav-icon">⚡</span>
+                        <span class="nav-label">Bulk Operations</span>
+                    </a>
+
+                    <?php endif; ?>
+
+                    <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>
                     <div class="nav-divider"></div>
 
                     <a href="<?= $url('admin') ?>" class="nav-item <?= ($current_page ?? '') === 'admin' ? 'active' : '' ?>">

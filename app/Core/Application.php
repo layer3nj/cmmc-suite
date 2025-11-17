@@ -168,6 +168,11 @@ class Application
             $this->router->get('/reports/sprs', 'App\Controllers\ReportController@sprs');
             $this->router->post('/reports/generate', 'App\Controllers\ReportController@generate');
 
+            // PDF Reports
+            $this->router->get('/reports/ssp/{clientId}', 'App\Controllers\ReportController@sspPdf');
+            $this->router->get('/reports/poam/{clientId}', 'App\Controllers\ReportController@poamPdf');
+            $this->router->get('/reports/assessment/{assessmentId}', 'App\Controllers\ReportController@assessmentPdf');
+
             // Documents/Evidence
             $this->router->get('/documents', 'App\Controllers\DocumentController@index');
             $this->router->post('/documents/upload', 'App\Controllers\DocumentController@upload');
@@ -209,6 +214,19 @@ class Application
             $this->router->post('/bulk/clone-assessment', 'App\Controllers\BulkOperationsController@cloneAssessment');
             $this->router->post('/bulk/batch-update-poam', 'App\Controllers\BulkOperationsController@batchUpdatePoam');
             $this->router->get('/bulk/get-poam-items', 'App\Controllers\BulkOperationsController@getPoamItems');
+
+            // Compliance Gap Analysis
+            $this->router->get('/compliance-gap', 'App\Controllers\ComplianceGapController@index');
+            $this->router->get('/compliance-gap/analyze', 'App\Controllers\ComplianceGapController@analyze');
+            $this->router->get('/compliance-gap/export', 'App\Controllers\ComplianceGapController@export');
+
+            // Evidence Collection & Management
+            $this->router->get('/evidence', 'App\Controllers\EvidenceController@index');
+            $this->router->post('/evidence/upload', 'App\Controllers\EvidenceController@upload');
+            $this->router->get('/evidence/{id}/download', 'App\Controllers\EvidenceController@download');
+            $this->router->post('/evidence/approve', 'App\Controllers\EvidenceController@approve');
+            $this->router->post('/evidence/reject', 'App\Controllers\EvidenceController@reject');
+            $this->router->post('/evidence/delete', 'App\Controllers\EvidenceController@delete');
 
             // Admin
             $this->router->get('/admin', 'App\Controllers\AdminController@index');

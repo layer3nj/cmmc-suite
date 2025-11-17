@@ -16,6 +16,9 @@ ob_start();
         <?php else: ?>
             <span class="badge badge-success">Published</span>
         <?php endif; ?>
+        <a href="<?= $url('reports/assessment/' . $assessment['id']) ?>" target="_blank" class="btn btn-secondary">
+            Generate PDF Report
+        </a>
         <a href="<?= $url('assessments') ?>" class="btn btn-secondary">Back to Assessments</a>
     </div>
 </div>

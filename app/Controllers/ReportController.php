@@ -143,4 +143,129 @@ class ReportController
         Session::flash('info', 'Custom report generation coming soon.');
         return Response::redirect($request->baseUrl() . '/reports');
     }
+
+    /**
+     * Generate System Security Plan (SSP) PDF Report
+     */
+    public function sspPdf(Request $request, string $clientId): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $client = $this->db->fetchOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+        if (!$client) return new Response('Client not found', 404);
+
+        $assessment = $this->db->fetchOne(
+            "SELECT * FROM assessments WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1",
+            [$clientId]
+        );
+
+        $responses = $assessment ? $this->db->fetchAll(
+            "SELECT * FROM assessment_responses WHERE assessment_id = ? ORDER BY control_code",
+            [$assessment['id']]
+        ) : [];
+
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
+        $content = View::render('reports/ssp_pdf', [
+            'client' => $client,
+            'assessment' => $assessment,
+            'responses' => $responses,
+            'settings' => $settings,
+        ]);
+
+        return new Response($content);
+    }
+
+    /**
+     * Generate POA&M PDF Report
+     */
+    public function poamPdf(Request $request, string $clientId): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $client = $this->db->fetchOne("SELECT * FROM clients WHERE id = ?", [$clientId]);
+        if (!$client) return new Response('Client not found', 404);
+
+        $poamItems = $this->db->fetchAll(
+            "SELECT * FROM poam_items WHERE customer_id = ? ORDER BY
+             CASE status
+                WHEN 'open' THEN 1
+                WHEN 'in_progress' THEN 2
+                WHEN 'closed' THEN 3
+                ELSE 4
+             END,
+             planned_completion_date ASC",
+            [$clientId]
+        );
+
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
+        $content = View::render('reports/poam_pdf', [
+            'client' => $client,
+            'poam_items' => $poamItems,
+            'settings' => $settings,
+        ]);
+
+        return new Response($content);
+    }
+
+    /**
+     * Generate Assessment Summary PDF Report
+     */
+    public function assessmentPdf(Request $request, string $assessmentId): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        $assessment = $this->db->fetchOne("SELECT * FROM assessments WHERE id = ?", [$assessmentId]);
+        if (!$assessment) return new Response('Assessment not found', 404);
+
+        $client = $this->db->fetchOne("SELECT * FROM clients WHERE id = ?", [$assessment['customer_id']]);
+
+        $responses = $this->db->fetchAll(
+            "SELECT * FROM assessment_responses WHERE assessment_id = ? ORDER BY control_code",
+            [$assessmentId]
+        );
+
+        // Calculate statistics
+        $stats = [
+            'total' => count($responses),
+            'compliant' => 0,
+            'non_compliant' => 0,
+            'not_applicable' => 0,
+        ];
+
+        foreach ($responses as $response) {
+            switch ($response['response']) {
+                case 'compliant':
+                case 'yes':
+                    $stats['compliant']++;
+                    break;
+                case 'non_compliant':
+                case 'no':
+                    $stats['non_compliant']++;
+                    break;
+                case 'not_applicable':
+                    $stats['not_applicable']++;
+                    break;
+            }
+        }
+
+        $settingsService = new \App\Services\SettingsService($this->db);
+        $settings = $settingsService->getAll();
+
+        $content = View::render('reports/assessment_pdf', [
+            'client' => $client,
+            'assessment' => $assessment,
+            'responses' => $responses,
+            'stats' => $stats,
+            'settings' => $settings,
+        ]);
+
+        return new Response($content);
+    }
 }

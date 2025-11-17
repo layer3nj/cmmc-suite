@@ -107,6 +107,11 @@
                         <span class="nav-label">Documents</span>
                     </a>
 
+                    <a href="<?= $url('evidence') ?>" class="nav-item <?= ($current_page ?? '') === 'evidence' ? 'active' : '' ?>">
+                        <span class="nav-icon">🔍</span>
+                        <span class="nav-label">Evidence</span>
+                    </a>
+
                     <a href="<?= $url('policies') ?>" class="nav-item <?= ($current_page ?? '') === 'policies' ? 'active' : '' ?>">
                         <span class="nav-icon">📜</span>
                         <span class="nav-label">Policy Templates</span>
@@ -120,6 +125,11 @@
                     <a href="<?= $url('integrations') ?>" class="nav-item <?= ($current_page ?? '') === 'integrations' ? 'active' : '' ?>">
                         <span class="nav-icon">🔗</span>
                         <span class="nav-label">Integrations</span>
+                    </a>
+
+                    <a href="<?= $url('compliance-gap') ?>" class="nav-item <?= ($current_page ?? '') === 'compliance-gap' ? 'active' : '' ?>">
+                        <span class="nav-icon">🎯</span>
+                        <span class="nav-label">Gap Analysis</span>
                     </a>
 
                     <?php if (\App\Middleware\AuthMiddleware::checkPermission('admin')): ?>

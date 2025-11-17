@@ -16,10 +16,45 @@ ob_start();
         <h1><?= $e($client['name']) ?></h1>
     </div>
     <div class="page-actions">
+        <div class="dropdown" style="position: relative; display: inline-block;">
+            <button class="btn btn-secondary" onclick="toggleReportMenu(event)">
+                Generate Report ▼
+            </button>
+            <div id="report-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); margin-top: 5px; min-width: 200px; z-index: 1000;">
+                <a href="<?= $url('reports/ssp/' . $client['id']) ?>" target="_blank" class="dropdown-item" style="display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                    System Security Plan (SSP)
+                </a>
+                <a href="<?= $url('reports/poam/' . $client['id']) ?>" target="_blank" class="dropdown-item" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">
+                    POA&M Report
+                </a>
+            </div>
+        </div>
         <a href="<?= $url('clients/' . $client['id'] . '/edit') ?>" class="btn btn-secondary">Edit</a>
         <a href="<?= $url('clients/' . $client['id'] . '/select') ?>" class="btn btn-primary">Select Client</a>
     </div>
 </div>
+
+<style>
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function toggleReportMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('report-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('report-menu');
+    if (menu) {
+        menu.style.display = 'none';
+    }
+});
+</script>
 
 <div class="card">
     <div class="card-header">

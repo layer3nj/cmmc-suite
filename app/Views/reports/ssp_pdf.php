@@ -109,13 +109,12 @@
             ];
 
             foreach ($responses as $response) {
-                switch ($response['response']) {
-                    case 'compliant':
-                    case 'yes':
+                switch ($response['status']) {
+                    case 'met':
                         $stats['compliant']++;
                         break;
-                    case 'non_compliant':
-                    case 'no':
+                    case 'partially_met':
+                    case 'not_met':
                         $stats['non_compliant']++;
                         break;
                     case 'not_applicable':
@@ -146,10 +145,10 @@
                     <?php foreach ($responses as $response): ?>
                     <tr class="control-row">
                         <td><?= $e($response['control_code']) ?></td>
-                        <td class="<?= in_array($response['response'], ['compliant', 'yes']) ? 'compliant' : (in_array($response['response'], ['non_compliant', 'no']) ? 'non-compliant' : 'not-applicable') ?>">
-                            <?= ucfirst(str_replace('_', ' ', $response['response'])) ?>
+                        <td class="<?= $response['status'] === 'met' ? 'compliant' : ($response['status'] === 'not_applicable' ? 'not-applicable' : 'non-compliant') ?>">
+                            <?= ucfirst(str_replace('_', ' ', $response['status'])) ?>
                         </td>
-                        <td><?= $e($response['notes'] ?? '-') ?></td>
+                        <td><?= $e($response['objective_evidence'] ?? '-') ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

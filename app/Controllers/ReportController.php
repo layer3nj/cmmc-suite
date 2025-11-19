@@ -161,7 +161,7 @@ class ReportController
         );
 
         $responses = $assessment ? $this->db->fetchAll(
-            "SELECT * FROM assessment_responses WHERE assessment_id = ? ORDER BY control_code",
+            "SELECT * FROM control_findings WHERE assessment_id = ? ORDER BY control_code",
             [$assessment['id']]
         ) : [];
 
@@ -227,7 +227,7 @@ class ReportController
         $client = $this->db->fetchOne("SELECT * FROM clients WHERE id = ?", [$assessment['customer_id']]);
 
         $responses = $this->db->fetchAll(
-            "SELECT * FROM assessment_responses WHERE assessment_id = ? ORDER BY control_code",
+            "SELECT * FROM control_findings WHERE assessment_id = ? ORDER BY control_code",
             [$assessmentId]
         );
 
@@ -240,13 +240,12 @@ class ReportController
         ];
 
         foreach ($responses as $response) {
-            switch ($response['response']) {
-                case 'compliant':
-                case 'yes':
+            switch ($response['status']) {
+                case 'met':
                     $stats['compliant']++;
                     break;
-                case 'non_compliant':
-                case 'no':
+                case 'partially_met':
+                case 'not_met':
                     $stats['non_compliant']++;
                     break;
                 case 'not_applicable':

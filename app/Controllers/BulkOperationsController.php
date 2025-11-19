@@ -92,7 +92,7 @@ class BulkOperationsController
 
             // Get all responses for source assessment
             $sourceResponses = $this->db->fetchAll(
-                "SELECT * FROM assessment_responses WHERE assessment_id = ?",
+                "SELECT * FROM control_findings WHERE assessment_id = ?",
                 [$sourceAssessmentId]
             );
 
@@ -116,12 +116,15 @@ class BulkOperationsController
 
                 // Clone all responses
                 foreach ($sourceResponses as $response) {
-                    $this->db->insert('assessment_responses', [
+                    $this->db->insert('control_findings', [
                         'assessment_id' => $newAssessmentId,
+                        'control_framework' => $response['control_framework'],
                         'control_code' => $response['control_code'],
-                        'response' => $response['response'],
-                        'notes' => $response['notes'],
-                        'evidence' => $response['evidence'],
+                        'status' => $response['status'],
+                        'objective_evidence' => $response['objective_evidence'] ?? null,
+                        'compensating_controls' => $response['compensating_controls'] ?? null,
+                        'related_stig_refs' => $response['related_stig_refs'] ?? null,
+                        'severity' => $response['severity'] ?? null,
                         'created_at' => date('Y-m-d H:i:s'),
                         'updated_at' => date('Y-m-d H:i:s'),
                     ]);

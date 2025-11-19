@@ -69,10 +69,10 @@
             <?php foreach ($responses as $response): ?>
             <tr>
                 <td><?= $e($response['control_code']) ?></td>
-                <td class="<?= in_array($response['response'], ['compliant', 'yes']) ? 'compliant' : (in_array($response['response'], ['non_compliant', 'no']) ? 'non-compliant' : '') ?>">
-                    <?= ucfirst(str_replace('_', ' ', $response['response'])) ?>
+                <td class="<?= $response['status'] === 'met' ? 'compliant' : ($response['status'] === 'not_applicable' ? '' : 'non-compliant') ?>">
+                    <?= ucfirst(str_replace('_', ' ', $response['status'])) ?>
                 </td>
-                <td><?= $e($response['notes'] ?? '-') ?></td>
+                <td><?= $e($response['objective_evidence'] ?? '-') ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

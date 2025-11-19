@@ -102,7 +102,7 @@ class ComplianceGapController
         $responses = [];
         if ($assessment) {
             $responseRows = $this->db->fetchAll(
-                "SELECT * FROM assessment_responses WHERE assessment_id = ?",
+                "SELECT * FROM control_findings WHERE assessment_id = ?",
                 [$assessment['id']]
             );
 
@@ -131,14 +131,14 @@ class ComplianceGapController
             $priority = 'medium';
 
             if ($response) {
-                if (in_array($response['response'], ['compliant', 'yes'])) {
+                if ($response['status'] === 'met') {
                     $status = 'compliant';
                     $stats['compliant']++;
                     continue; // Skip compliant controls
-                } elseif (in_array($response['response'], ['non_compliant', 'no'])) {
+                } elseif (in_array($response['status'], ['partially_met', 'not_met'])) {
                     $status = 'non_compliant';
                     $stats['non_compliant']++;
-                } elseif ($response['response'] === 'not_applicable') {
+                } elseif ($response['status'] === 'not_applicable') {
                     continue; // Skip N/A controls
                 }
             } else {
@@ -179,7 +179,7 @@ class ComplianceGapController
                 'category' => $control['category'] ?? 'General',
                 'status' => $status,
                 'priority' => $priority,
-                'notes' => $response['notes'] ?? '',
+                'notes' => $response['objective_evidence'] ?? '',
             ];
         }
 

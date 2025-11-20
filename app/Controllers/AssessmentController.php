@@ -383,6 +383,61 @@ class AssessmentController
         return $grouped;
     }
 
+    public function exportPdf(Request $request, string $id): Response
+    {
+        $authCheck = AuthMiddleware::handle($request);
+        if ($authCheck) return $authCheck;
+
+        Session::start();
+        $customerId = Session::get('current_customer_id');
+
+        $assessment = $this->db->fetchOne(
+            "SELECT a.*, u.display_name as assessor_name
+             FROM assessments a
+             LEFT JOIN users u ON a.assessor_user_id = u.id
+             WHERE a.id = ? AND a.customer_id = ?",
+            [$id, $customerId]
+        );
+
+        if (!$assessment) {
+            return new Response('Assessment not found', 404);
+        }
+
+        // Get findings grouped by domain
+        $findings = $this->db->fetchAll(
+            "SELECT cf.*, c.title, c.description, c.ml_level
+             FROM control_findings cf
+             JOIN controls c ON cf.control_framework = c.framework AND cf.control_code = c.code
+             WHERE cf.assessment_id = ?
+             ORDER BY cf.control_code ASC",
+            [$id]
+        );
+
+        // Group by domain (for NIST)
+        $groupedFindings = $this->groupFindings($findings);
+
+        // Get statistics
+        $stats = $this->getAssessmentStats($id);
+
+        // Render HTML content for PDF
+        $htmlContent = View::render('assessments/pdf_export', [
+            'assessment' => $assessment,
+            'findings' => $groupedFindings,
+            'stats' => $stats,
+            'generated_date' => date('F j, Y g:i A'),
+        ]);
+
+        // Set headers for PDF download
+        $filename = 'assessment_' . $id . '_' . strtolower($assessment['framework']) . '_' . date('Y-m-d') . '.pdf';
+
+        // Use browser's built-in print-to-PDF functionality
+        $response = new Response($htmlContent);
+        $response->setHeader('Content-Type', 'text/html; charset=utf-8');
+        $response->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+
+        return $response;
+    }
+
     private function getAssessmentStats(int $assessmentId): array
     {
         $total = $this->db->fetchColumn(

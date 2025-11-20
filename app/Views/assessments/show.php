@@ -11,6 +11,7 @@ ob_start();
     </div>
     <h1><?= $e($assessment['framework'] ?? 'Unknown Framework') ?> Assessment</h1>
     <div class="page-actions">
+        <a href="<?= $url('assessments/' . $assessment['id'] . '/export-pdf') ?>" class="btn btn-secondary" target="_blank">Export PDF</a>
         <?php if ($assessment['status'] === 'draft'): ?>
             <button type="button" class="btn btn-primary" onclick="publishAssessment()">Publish Assessment</button>
         <?php else: ?>

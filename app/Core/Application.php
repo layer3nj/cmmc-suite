@@ -109,6 +109,7 @@ class Application
             $this->router->get('/assessments/create', 'App\Controllers\AssessmentController@create');
             $this->router->post('/assessments', 'App\Controllers\AssessmentController@store');
             $this->router->get('/assessments/{id}', 'App\Controllers\AssessmentController@show');
+            $this->router->get('/assessments/{id}/export-pdf', 'App\Controllers\AssessmentController@exportPdf');
             $this->router->post('/assessments/{id}/findings', 'App\Controllers\AssessmentController@updateFindings');
             $this->router->post('/assessments/{id}/publish', 'App\Controllers\AssessmentController@publish');
             $this->router->post('/assessments/{id}/delete', 'App\Controllers\AssessmentController@delete');

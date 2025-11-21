@@ -42,6 +42,8 @@ class ReportController
 
         Session::start();
         $customerId = Session::get('current_customer_id');
+        $customerName = Session::get('current_customer_name');
+        $format = $request->query('format', 'csv');
 
         $controls = $this->db->fetchAll(
             "SELECT c.*,
@@ -55,6 +57,45 @@ class ReportController
              ORDER BY c.ml_level, c.code",
             [$customerId]
         );
+
+        // Calculate statistics
+        $stats = [
+            'total' => count($controls),
+            'met' => 0,
+            'partially_met' => 0,
+            'not_met' => 0,
+            'not_applicable' => 0,
+            'not_assessed' => 0,
+        ];
+
+        foreach ($controls as $control) {
+            $status = strtolower($control['status'] ?? 'not_assessed');
+            if (isset($stats[$status])) {
+                $stats[$status]++;
+            } else {
+                $stats['not_assessed']++;
+            }
+        }
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $htmlContent = View::render('reports/assessment_pdf', [
+                'framework' => 'CMMC',
+                'framework_name' => 'CMMC 2.0 - Cybersecurity Maturity Model Certification',
+                'report_type' => 'Compliance Assessment Report',
+                'customer_name' => $customerName,
+                'controls' => $controls,
+                'stats' => $stats,
+                'generated_date' => date('F j, Y g:i A'),
+                'status' => 'Published',
+            ]);
+
+            $filename = 'cmmc_report_' . date('Y-m-d') . '.pdf';
+            $response = new Response($htmlContent);
+            $response->setHeader('Content-Type', 'text/html; charset=utf-8');
+            $response->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+            return $response;
+        }
 
         // Generate CSV
         $csv = "ML Level,Control Code,Title,Status\n";
@@ -78,6 +119,8 @@ class ReportController
 
         Session::start();
         $customerId = Session::get('current_customer_id');
+        $customerName = Session::get('current_customer_name');
+        $format = $request->query('format', 'csv');
 
         $controls = $this->db->fetchAll(
             "SELECT c.*,
@@ -91,6 +134,45 @@ class ReportController
              ORDER BY c.code",
             [$customerId]
         );
+
+        // Calculate statistics
+        $stats = [
+            'total' => count($controls),
+            'met' => 0,
+            'partially_met' => 0,
+            'not_met' => 0,
+            'not_applicable' => 0,
+            'not_assessed' => 0,
+        ];
+
+        foreach ($controls as $control) {
+            $status = strtolower($control['status'] ?? 'not_assessed');
+            if (isset($stats[$status])) {
+                $stats[$status]++;
+            } else {
+                $stats['not_assessed']++;
+            }
+        }
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $htmlContent = View::render('reports/assessment_pdf', [
+                'framework' => 'NIST800171',
+                'framework_name' => 'NIST SP 800-171 Rev 2',
+                'report_type' => 'Compliance Assessment Report',
+                'customer_name' => $customerName,
+                'controls' => $controls,
+                'stats' => $stats,
+                'generated_date' => date('F j, Y g:i A'),
+                'status' => 'Published',
+            ]);
+
+            $filename = 'nist_800_171_report_' . date('Y-m-d') . '.pdf';
+            $response = new Response($htmlContent);
+            $response->setHeader('Content-Type', 'text/html; charset=utf-8');
+            $response->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+            return $response;
+        }
 
         $csv = "Control Code,Title,Status\n";
         foreach ($controls as $control) {
@@ -110,9 +192,62 @@ class ReportController
         $authCheck = AuthMiddleware::handle($request);
         if ($authCheck) return $authCheck;
 
+        Session::start();
+        $customerId = Session::get('current_customer_id');
+        $customerName = Session::get('current_customer_name');
+        $format = $request->query('format', 'csv');
+
         $controls = $this->db->fetchAll(
-            "SELECT * FROM controls WHERE framework = 'STIG' ORDER BY code"
+            "SELECT c.*,
+             (SELECT status FROM control_findings cf
+              JOIN assessments a ON cf.assessment_id = a.id
+              WHERE cf.control_code = c.code AND cf.control_framework = 'STIG'
+              AND a.customer_id = ? AND a.status = 'published'
+              ORDER BY a.assessed_at DESC LIMIT 1) as status
+             FROM controls c
+             WHERE c.framework = 'STIG'
+             ORDER BY c.code",
+            [$customerId]
         );
+
+        // Calculate statistics
+        $stats = [
+            'total' => count($controls),
+            'met' => 0,
+            'partially_met' => 0,
+            'not_met' => 0,
+            'not_applicable' => 0,
+            'not_assessed' => 0,
+        ];
+
+        foreach ($controls as $control) {
+            $status = strtolower($control['status'] ?? 'not_assessed');
+            if (isset($stats[$status])) {
+                $stats[$status]++;
+            } else {
+                $stats['not_assessed']++;
+            }
+        }
+
+        if ($format === 'pdf') {
+            // Generate PDF
+            $htmlContent = View::render('reports/assessment_pdf', [
+                'framework' => 'STIG',
+                'framework_name' => 'DISA STIG - Security Technical Implementation Guide',
+                'report_type' => 'Compliance Assessment Report',
+                'customer_name' => $customerName,
+                'controls' => $controls,
+                'stats' => $stats,
+                'generated_date' => date('F j, Y g:i A'),
+                'status' => 'Published',
+            ]);
+
+            $filename = 'stig_report_' . date('Y-m-d') . '.pdf';
+            $response = new Response($htmlContent);
+            $response->setHeader('Content-Type', 'text/html; charset=utf-8');
+            $response->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+            return $response;
+        }
 
         $csv = "STIG ID,Title,Version,Severity\n";
         foreach ($controls as $control) {

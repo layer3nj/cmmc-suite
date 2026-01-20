@@ -90,6 +90,11 @@
                         <span class="nav-label">POA&M</span>
                     </a>
 
+                    <a href="<?= $url('todos') ?>" class="nav-item <?= ($current_page ?? '') === 'todos' ? 'active' : '' ?>">
+                        <span class="nav-icon">✔️</span>
+                        <span class="nav-label">To-Do List</span>
+                    </a>
+
                     <a href="<?= $url('documents') ?>" class="nav-item <?= ($current_page ?? '') === 'documents' ? 'active' : '' ?>">
                         <span class="nav-icon">📁</span>
                         <span class="nav-label">Documents</span>

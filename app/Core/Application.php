@@ -129,6 +129,15 @@ class Application
             $this->router->get('/poam/export/csv', 'App\Controllers\PoamController@exportCsv');
             $this->router->get('/poam/export/pdf', 'App\Controllers\PoamController@exportPdf');
 
+            // To-Do List
+            $this->router->get('/todos', 'App\Controllers\TodoController@index');
+            $this->router->get('/todos/create', 'App\Controllers\TodoController@create');
+            $this->router->post('/todos', 'App\Controllers\TodoController@store');
+            $this->router->get('/todos/{id}', 'App\Controllers\TodoController@show');
+            $this->router->post('/todos/{id}', 'App\Controllers\TodoController@update');
+            $this->router->post('/todos/{id}/delete', 'App\Controllers\TodoController@delete');
+            $this->router->post('/todos/{id}/status', 'App\Controllers\TodoController@updateStatus');
+
             // Reports
             $this->router->get('/reports', 'App\Controllers\ReportController@index');
             $this->router->get('/reports/cmmc', 'App\Controllers\ReportController@cmmc');
